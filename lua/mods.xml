@@ -23,7 +23,9 @@
 	
 	--load chess engine
 	local songName = GAMESTATE:GetCurrentSong():GetSongDir();
-	dofile ('.' .. songName .. 'lua/sunfish/sunfish.lua')
+	local result = pcall(function () dofile ('.' .. songName .. 'lua/sunfish/sunfish.lua') end)
+	if not result then result = pcall(function () dofile ('lua/sunfish/sunfish.lua') end) end
+	if not result then backToSongWheel('Loading sunfish.lua failed!') end
 	
 	--set sprite layers to not animate
 	piece:animate(0)
