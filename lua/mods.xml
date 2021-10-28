@@ -4,6 +4,8 @@
 		return
 	end
 
+	GAMESTATE:ForceSmoothLines(1)
+
 	-- judgment / combo proxies
 	for pn = 1, 2 do
 		setupJudgeProxy(PJ[pn], P[pn]:GetChild('Judgment'), pn)
@@ -15,6 +17,13 @@
 		P[pn]:hidden(1)
 	end
 	-- your code goes here here:
+
+	local function lerp(x, y, a)
+		return x * (1 - a) + y * a
+	end
+	local function clamp(a, x, y)
+		return math.min(math.max(a, math.min(x, y)), math.max(x, y))
+	end
 	
 	--define scalex and scaley
 	local padding = 12 -- in px
@@ -64,10 +73,51 @@
 			end
 		end
 	end
+
+	local cursorx, cursory = 0, 0
+	local cursorxto, cursoryto = 0, 0
+
+	-- squircle rendering code (oh god please help)
+	local corners = {{0, 0}, {1, 0}, {1, 1}, {0, 1}}
+	local cursorVertices = {}
+	local radius = 0.14
+	local q = 6
+	for i = 1, 4 do
+		for a = 0, q do
+			local angle = (a / q) * math.pi / 2 + (i + 1) * math.pi / 2
+			local ox = corners[i][1]
+			local oy = corners[i][2]
+			local x = math.cos(angle) * radius + ((ox - 0.5) * (1 - radius * 2) + 0.5)
+			local y = math.sin(angle) * radius + ((oy - 0.5) * (1 - radius * 2) + 0.5)
+			table.insert(cursorVertices, {x = x, y = y})
+		end
+	end
+	table.insert(cursorVertices, cursorVertices[1])
+
+	cursor:SetNumVertices(#cursorVertices)
+	for i, v in pairs(cursorVertices) do
+		print(v.x, v.y)
+		cursor:SetVertexPosition(i - 1, v.x, v.y, 0)
+	end
+	cursor:SetDrawMode('linestrip')
+
+	local function drawcursor(x, y)
+		cursor:xy(x, y)
+		cursor:diffuse(129/255, 241/255, 245/255, 1)
+		cursor:zoom(size / 8)
+		cursor:SetLineWidth(3)
+		cursor:Draw()
+	end
 	
-	
+	local lasttime = 0
 	chess:SetDrawFunction(function(self)
+		local dt = GAMESTATE:GetSongTime() - lasttime
+		lasttime = GAMESTATE:GetSongTime()
+
+		cursorx, cursory = lerp(cursorx, cursorxto, dt * 12), lerp(cursory, cursoryto, dt * 12)
+
 		drawboard()
+		drawcursor(padleft + size * cursorx / 8, padtop + size * cursory / 8)
 		--for i=0,11 do
 			--drawpiece(i,i*50+50,SCREEN_HEIGHT/2+math.sin(i)*50)
 		--end
@@ -75,9 +125,16 @@
 	
 	
 	-- setup input
+	local dirbinds = {
+		Left = {-1, 0},
+		Down = {0, 1},
+		Up = {0, -1},
+		Right = {1, 0},
+	}
 	local holdtimer = 0.75 -- how many seconds does it take before a key tap becomes a long tap?
 	for _, v in ipairs({'Left', 'Down', 'Up', 'Right'}) do
 		local v = v
+		local d = dirbinds[v]
 		Trace(v)
 		local pressedAt = -1
 		self:addcommand('StepP' .. 1 .. v .. 'Press' .. 'Message', function()
@@ -87,6 +144,7 @@
 			local dt = GAMESTATE:GetSongTime() - pressedAt
 			if dt < holdtimer then
 				Trace('moved cursor ' .. v .. '!')
+				cursorxto, cursoryto = clamp(cursorxto + d[1], 0, 7), clamp(cursoryto + d[2], 0, 7)
 				pressedAt = -1
 			end
 		end)
@@ -113,5 +171,6 @@ Type = "ActorFrame"
 	<Layer Type = "ActorFrame" Name = "chess"> <children>
 		<Layer File = 'chess.sprite' Name = "piece" />
 		<Layer File = 'board.sprite' Name = "boardtile" />
+		<Layer Type = "Polygon" Name = "cursor" />
 	</children> </Layer>
 </children></Mods>
