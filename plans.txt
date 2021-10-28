@@ -1,0 +1,7 @@
+64 actors for the board, each loads spritesheet that contains chess pieces. 
+1 additional actor for player cursor.
+
+---------controls-----------
+tap up down left or right to move cursor. cursor moves once key is released.
+hold down any key for X seconds to "click" (can be used to pick up piece, attempt to set down piece)
+
