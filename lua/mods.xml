@@ -109,6 +109,8 @@
 		r = 10,
 		p = 11
 	}
+
+	local sfletters = {'a','b','c','d','e','f','g','h'}
 	
 	local heldpiece = {x=-1,y=-1}
 	
@@ -133,8 +135,6 @@
 
 	local cursorx, cursory = 0, 0
 	local cursorxto, cursoryto = 0, 0
-	
-
 
 	-- squircle rendering code (oh god please help)
 	local corners = {{0, 0}, {1, 0}, {1, 1}, {0, 1}}
@@ -159,6 +159,16 @@
 		cursor:SetVertexPosition(i - 1, v.x, v.y, 0)
 	end
 	cursor:SetDrawMode('linestrip')
+	cursor:SetPolygonMode(1)
+
+	local circleq = 50
+	movespot:SetNumVertices(circleq)
+	for i = 1, circleq do
+		local a = i / (circleq - 1) * math.pi * 2
+		movespot:SetVertexPosition(i - 1, math.cos(a), math.sin(a), 0)
+	end
+	movespot:SetDrawMode('fan')
+	movespot:SetPolygonMode(0)
 
 	local function drawcursor(x, y)
 		cursor:xy(x, y)
@@ -171,6 +181,38 @@
 			drawpiece(cpiece ,x, y + (math.sin(GAMESTATE:GetSongTime()*1.5)*(0-wobblesize))*80,0.5)
 		end
 	end
+
+	local movespotsCache = {}
+	local function drawMovespots()
+		if #movespotsCache == 0 then
+			for x = 0, 7 do
+				for y = 0, 7 do
+					local crdn = sfletters[heldpiece.x + 1] .. tostring(8 - heldpiece.y) .. sfletters[x + 1] .. tostring(8 - y)
+					-- this generates a move string that sunfish accepts (eg: a2a3)
+					local move = {parse(string.sub(crdn, 1, 2)), parse(string.sub(crdn, 3, 4))}
+					local valid = move[1] and move[2] and ttfind(pos:genMoves(), move)
+
+					if valid then
+						table.insert(movespotsCache, {x, y})
+					end
+				end
+			end
+		end
+
+		movespot:zoom(size / 8 / 6)
+		movespot:SetLineWidth(4)
+		for _, s in ipairs(movespotsCache) do
+			local cpiece = pstrtopnum[ board[s[1]+1][s[2]+1] ]
+			if cpiece then
+				movespot:diffuse(1, 0, 0, 0.5)
+			else
+				movespot:diffuse(1, 1, 1, 0.5)
+			end
+
+			movespot:xy(padleft + size * (s[1] + 0.5) / 8, padtop + size * (s[2] + 0.5) / 8)
+			movespot:Draw()
+		end
+	end
 	
 	local lasttime = 0
 	chess:SetDrawFunction(function(self)
@@ -181,15 +223,15 @@
 
 		drawboard()
 		drawpieces()
+		if heldpiece.x ~= -1 and heldpiece.y ~= -1 then
+			drawMovespots()
+		end
 		drawcursor(padleft + size * cursorx / 8, padtop + size * cursory / 8)
 		--for i=0,11 do
 			--drawpiece(i,i*50+50,SCREEN_HEIGHT/2+math.sin(i)*50)
 		--end
 	end)
-	
-	
-	local sfletters = {'a','b','c','d','e','f','g','h'}
-	
+
 	-- setup input
 	local dirbinds = {
 		Left = {-1, 0},
@@ -228,6 +270,7 @@
 				elseif heldpiece.x == -1 and heldpiece.y == -1 and pstrtopnum[ board[cursorxto+1][cursoryto+1] ]  then -- no held piece, select current piece
 					heldpiece.x = cursorxto
 					heldpiece.y = cursoryto
+					movespotsCache = {}
 				elseif heldpiece.x ~= -1 and heldpiece.y ~= -1  then-- selecting a different piece with an already held piece, try to move held piece to this spot!
 					local crdn = sfletters[heldpiece.x + 1] .. tostring(8 - heldpiece.y) .. sfletters[cursorxto + 1] .. tostring(8 - cursoryto) 
 					-- this generates a move string that sunfish accepts (eg: a2a3)
@@ -277,5 +320,6 @@ Type = "ActorFrame"
 		<Layer File = 'chess.sprite' Name = "piece" />
 		<Layer File = 'board.sprite' Name = "boardtile" />
 		<Layer Type = "Polygon" Name = "cursor" />
+		<Layer Type = "Polygon" Name = "movespot" />
 	</children> </Layer>
 </children></Mods>
