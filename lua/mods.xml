@@ -27,6 +27,11 @@
 	if not result then result = pcall(function () dofile ('lua/sunfish/sunfish.lua') end) end
 	if not result then backToSongWheel('Loading sunfish.lua failed!') end
 	
+	
+	--start chess game
+	pos = Position.new(initial, 0, {true,true}, {true,true}, 0, 0)
+	printboard(pos.board)
+	
 	--set sprite layers to not animate
 	piece:animate(0)
 	boardtile:animate(0)
