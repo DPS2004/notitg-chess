@@ -48,21 +48,23 @@
 	--set sprite layers to not animate
 	piece:animate(0)
 	boardtile:animate(0)
-	piece:zoom(0.5)
+	piece:zoomto(size / 8, size / 8)
+	piece:align(0, 0)
+	boardtile:zoomto(size / 8, size / 8)
+	boardtile:align(0, 0)
 	
-	local function drawpiece(p,x,y)
+	local function drawpiece(p,x,y,o)
+		o = o or 1
 		piece:x(x)
 		piece:y(y)
-		piece:zoomto(size / 8, size / 8)
-		piece:align(0, 0)
+		piece:diffusealpha(o)
 		piece:setstate(p)
 		piece:Draw()
 	end
 	local function drawtile(p,x,y)
 		boardtile:x(x)
 		boardtile:y(y)
-		boardtile:zoomto(size / 8, size / 8)
-		boardtile:align(0, 0)
+		
 		boardtile:setstate(p)
 		boardtile:Draw()
 	end
@@ -76,6 +78,8 @@
 			end
 		end
 	end
+	
+	
 	
 	local pstrtopnum = {
 		K = 0,
@@ -92,6 +96,10 @@
 		p = 11
 	}
 	
+	local heldpiece = {x=-1,y=-1}
+	
+	local wobblesize = 0.1
+	
 	local function drawpieces(bx,by)
 		bx = bx or 0
 		by = by or 0
@@ -99,7 +107,11 @@
 			for y=0,7 do
 				local cpiece = pstrtopnum[ board[x+1][y+1] ] 
 				if cpiece then
-					drawpiece(cpiece, padleft + size * x/8, padtop + size * y/8)
+					if x == heldpiece.x and y == heldpiece.y then
+						drawpiece(cpiece, padleft + size * x/8, padtop + size * (y + math.sin(GAMESTATE:GetSongTime()*1.5)*wobblesize)/8,0.5)
+					else
+						drawpiece(cpiece, padleft + size * x/8, padtop + size * y/8)
+					end
 				end
 			end
 		end
@@ -107,6 +119,8 @@
 
 	local cursorx, cursory = 0, 0
 	local cursorxto, cursoryto = 0, 0
+	
+
 
 	-- squircle rendering code (oh god please help)
 	local corners = {{0, 0}, {1, 0}, {1, 1}, {0, 1}}
@@ -138,6 +152,10 @@
 		cursor:zoom(size / 8)
 		cursor:SetLineWidth(3)
 		cursor:Draw()
+		if heldpiece.x ~= -1 and heldpiece.y ~= -1 then
+			local cpiece = pstrtopnum[ board[heldpiece.x+1][heldpiece.y+1] ] 
+			drawpiece(cpiece ,x, y + (math.sin(GAMESTATE:GetSongTime()*1.5)*(0-wobblesize))*80,0.5)
+		end
 	end
 	
 	local lasttime = 0
@@ -155,6 +173,8 @@
 		--end
 	end)
 	
+	
+	local sfletters = {'a','b','c','d','e','f','g','h'}
 	
 	-- setup input
 	local dirbinds = {
@@ -186,7 +206,26 @@
 			local dt = GAMESTATE:GetSongTime() - pressedAt
 			if dt >= holdtimer then
 				Trace('holding piece!')
+				
 				pressedAt = -1
+				if heldpiece.x == cursorxto and heldpiece.y == cursoryto then -- holding on already selected piece, unselect
+					heldpiece.x = -1
+					heldpiece.y = -1
+				elseif heldpiece.x == -1 and heldpiece.y == -1 and pstrtopnum[ board[cursorxto+1][cursoryto+1] ]  then -- no held piece, select current piece
+					heldpiece.x = cursorxto
+					heldpiece.y = cursoryto
+				elseif heldpiece.x ~= -1 and heldpiece.y ~= -1  then-- selecting a different piece with an already held piece, try to move held piece to this spot!
+					local crdn = sfletters[heldpiece.x + 1] .. tostring(8 - heldpiece.y) .. sfletters[cursorxto + 1] .. tostring(8 - cursoryto) 
+					-- this generates a move string that sunfish accepts (eg: a2a3)
+					local move = {parse(string.sub(crdn, 1, 2)), parse(string.sub(crdn, 3, 4))}
+					if move[1] and move[2] and ttfind(pos:genMoves(), move) then
+						print('this is an ok move')
+					else
+						print('this is NOT an ok move!!!')
+					end
+				end
+				print(heldpiece.x)
+				print(heldpiece.y)
 			end
 		end}
 	end
