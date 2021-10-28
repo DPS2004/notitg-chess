@@ -33,11 +33,25 @@
 
 	print(padtop)
 	
+	--set chess engine difficulty
+	local difficulty = GAMESTATE:GetCurrentSteps(0):GetDifficulty()
+	if difficulty == 1 then
+		NODES_SEARCHED = 1e1
+	elseif difficulty == 2 then
+		NODES_SEARCHED = 1e2
+	elseif difficulty == 3 then
+		NODES_SEARCHED = 1e3
+	elseif difficulty == 4 then
+		NODES_SEARCHED = 1e4
+	end
+	print('difficulty '.. difficulty)
+	
 	--load chess engine
 	local songName = GAMESTATE:GetCurrentSong():GetSongDir();
 	local result = pcall(function () dofile ('.' .. songName .. 'lua/sunfish/sunfish.lua') end)
 	if not result then result = pcall(function () dofile ('lua/sunfish/sunfish.lua') end) end
 	if not result then backToSongWheel('Loading sunfish.lua failed!') end
+	
 	
 	
 	--start chess game
