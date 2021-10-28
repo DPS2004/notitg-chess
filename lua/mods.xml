@@ -16,6 +16,9 @@
 	end
 	-- your code goes here here:
 	
+	dofile ('lua/sunfish/sunfish.lua')
+	
+	
 	
 end)"
 Type = "ActorFrame"
@@ -26,4 +29,6 @@ Type = "ActorFrame"
 	<Layer Type = "ActorProxy" Name = "PJ[2]" />
 	<Layer Type = "ActorProxy" Name = "PP[1]" />
 	<Layer Type = "ActorProxy" Name = "PP[2]" />
+	
+	<Layer Type = "ActorFrame" Name = "fuckin_chess"
 </children></Mods>
