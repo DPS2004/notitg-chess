@@ -16,11 +16,19 @@
 	end
 	-- your code goes here here:
 	
+	--define scalex and scaley
+	scalex = SCREEN_WIDTH / 640
+	scaley = SCREEN_HEIGHT / 480
+	
+	
 	--load chess engine
 	dofile ('lua/sunfish/sunfish.lua')
 	
-	--set chess piece layer to not animate
+	--set sprite layers to not animate
 	piece:animate(0)
+	boardtile:animate(0)
+	piece:zoom(0.5)
+	boardtile:zoom(0.5)
 	
 	local function drawpiece(p,x,y)
 		piece:x(x)
@@ -28,13 +36,29 @@
 		piece:setstate(p)
 		piece:Draw()
 	end
-	
+	local function drawtile(p,x,y)
+		boardtile:x(x)
+		boardtile:y(y)
+		boardtile:setstate(p)
+		boardtile:Draw()
+	end
+	local function drawboard(bx,by)
+		bx = bx or 0
+		by = by or 0
+		for x=0,7 do
+			for y=0,7 do
+				-- in the case of a non 4:3 aspect ratio, scaley is usually smaller.
+				drawtile((x+y)%2, x*50*scaley+bx,y*50*scaley+by)
+			end
+		end
+	end
 	
 	
 	chess:SetDrawFunction(function(self)
-		for i=0,11 do
-			drawpiece(i,i*50+50,SCREEN_HEIGHT/2)
-		end
+		drawboard(25*scalex,25*scaley)
+		--for i=0,11 do
+			--drawpiece(i,i*50+50,SCREEN_HEIGHT/2+math.sin(i)*50)
+		--end
 	end)
 	
 	
@@ -52,5 +76,6 @@ Type = "ActorFrame"
 	
 	<Layer Type = "ActorFrame" Name = "chess"> <children>
 		<Layer File = 'chess.sprite' Name = "piece" />
+		<Layer File = 'board.sprite' Name = "boardtile" />
 	</children> </Layer>
 </children></Mods>

@@ -1,0 +1,6 @@
+[Sprite]
+Texture=board 2x1.png
+Frame0000=0
+Delay0000=0.06
+Frame0001=1
+Delay0001=0.06
