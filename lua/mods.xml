@@ -22,7 +22,8 @@
 	
 	
 	--load chess engine
-	dofile ('lua/sunfish/sunfish.lua')
+	local songName = GAMESTATE:GetCurrentSong():GetSongDir();
+	dofile ('.' .. songName .. 'lua/sunfish/sunfish.lua')
 	
 	--set sprite layers to not animate
 	piece:animate(0)
@@ -62,7 +63,7 @@
 	end)
 	
 	
-	
+	-- setup movement
 	
 end)"
 Type = "ActorFrame"
