@@ -16,7 +16,27 @@
 	end
 	-- your code goes here here:
 	
+	--load chess engine
 	dofile ('lua/sunfish/sunfish.lua')
+	
+	--set chess piece layer to not animate
+	piece:animate(0)
+	
+	local function drawpiece(p,x,y)
+		piece:x(x)
+		piece:y(y)
+		piece:setstate(p)
+		piece:Draw()
+	end
+	
+	
+	
+	chess:SetDrawFunction(function(self)
+		for i=0,11 do
+			drawpiece(i,i*50+50,SCREEN_HEIGHT/2)
+		end
+	end)
+	
 	
 	
 	
