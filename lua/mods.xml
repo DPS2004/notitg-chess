@@ -63,8 +63,32 @@
 	end)
 	
 	
-	-- setup movement
-	
+	-- setup input
+	local holdtimer = 0.75 -- how many seconds does it take before a key tap becomes a long tap?
+	for _, v in ipairs({'Left', 'Down', 'Up', 'Right'}) do
+		local v = v
+		Trace(v)
+		local pressedAt = -1
+		self:addcommand('StepP' .. 1 .. v .. 'Press' .. 'Message', function()
+			pressedAt = GAMESTATE:GetSongTime()
+		end)
+		self:addcommand('StepP' .. 1 .. v .. 'Lift' .. 'Message', function()
+			local dt = GAMESTATE:GetSongTime() - pressedAt
+			if dt < holdtimer then
+				Trace('moved cursor ' .. v .. '!')
+				pressedAt = -1
+			end
+		end)
+
+		func {0, 9e9, function()
+			if pressedAt == -1 then return end
+			local dt = GAMESTATE:GetSongTime() - pressedAt
+			if dt >= holdtimer then
+				Trace('holding piece!')
+				pressedAt = -1
+			end
+		end}
+	end
 end)"
 Type = "ActorFrame"
 ><children>
