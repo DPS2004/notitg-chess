@@ -30,5 +30,7 @@ Type = "ActorFrame"
 	<Layer Type = "ActorProxy" Name = "PP[1]" />
 	<Layer Type = "ActorProxy" Name = "PP[2]" />
 	
-	<Layer Type = "ActorFrame" Name = "fuckin_chess"
+	<Layer Type = "ActorFrame" Name = "chess"> <children>
+		<Layer File = 'chess.sprite' Name = "piece" />
+	</children> </Layer>
 </children></Mods>
