@@ -43,6 +43,7 @@
 	--start chess game
 	pos = Position.new(initial, 0, {true,true}, {true,true}, 0, 0)
 	printboard(pos.board)
+	board = boardtotable(pos.board) --only call this when board needs to be updated
 	
 	--set sprite layers to not animate
 	piece:animate(0)
@@ -52,6 +53,8 @@
 	local function drawpiece(p,x,y)
 		piece:x(x)
 		piece:y(y)
+		piece:zoomto(size / 8, size / 8)
+		piece:align(0, 0)
 		piece:setstate(p)
 		piece:Draw()
 	end
@@ -70,6 +73,34 @@
 			for y=0,7 do
 				-- in the case of a non 4:3 aspect ratio, scaley is usually smaller.
 				drawtile((x + y) % 2, padleft + size * x/8, padtop + size * y/8)
+			end
+		end
+	end
+	
+	local pstrtopnum = {
+		K = 0,
+		Q = 1,
+		B = 2,
+		N = 3,
+		R = 4,
+		P = 5,
+		k = 6,
+		q = 7,
+		b = 8,
+		n = 9,
+		r = 10,
+		p = 11
+	}
+	
+	local function drawpieces(bx,by)
+		bx = bx or 0
+		by = by or 0
+		for x=0,7 do
+			for y=0,7 do
+				local cpiece = pstrtopnum[ board[x+1][y+1] ] 
+				if cpiece then
+					drawpiece(cpiece, padleft + size * x/8, padtop + size * y/8)
+				end
 			end
 		end
 	end
@@ -117,6 +148,7 @@
 		cursorx, cursory = lerp(cursorx, cursorxto, dt * 12), lerp(cursory, cursoryto, dt * 12)
 
 		drawboard()
+		drawpieces()
 		drawcursor(padleft + size * cursorx / 8, padtop + size * cursory / 8)
 		--for i=0,11 do
 			--drawpiece(i,i*50+50,SCREEN_HEIGHT/2+math.sin(i)*50)
