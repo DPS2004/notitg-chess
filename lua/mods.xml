@@ -220,6 +220,26 @@
 					local move = {parse(string.sub(crdn, 1, 2)), parse(string.sub(crdn, 3, 4))}
 					if move[1] and move[2] and ttfind(pos:genMoves(), move) then
 						print('this is an ok move')
+						pos = pos:move(move)
+						
+						local move, score = search(pos)
+						assert(score)
+						
+						if score <= -MATE_VALUE then
+							print('You won')
+						end
+						if score >= MATE_VALUE then
+							print('You lost')
+						end
+						
+						assert(move)
+						
+						pos = pos:move(move)
+						
+						board = boardtotable(pos.board)
+						
+						heldpiece.x = -1
+						heldpiece.y = -1
 					else
 						print('this is NOT an ok move!!!')
 					end
