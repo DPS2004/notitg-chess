@@ -54,6 +54,9 @@
 		'IT\'S A FEATURE',
 		'FORBIDDEN',
 		'BRING ME HANK',
+		'UNINSTALL AVAST',
+		'ASDFGHJKL;',
+		'START RUNNING',
 		'>:(',
 	}
 
@@ -162,7 +165,7 @@
 	local heldcpiece
 	
 	local wobblesize = 0.1
-	
+	easedpieces = {}
 	local function drawpieces(bx,by)
 		bx = bx or 0
 		by = by or 0
@@ -173,10 +176,32 @@
 					if x == heldpiece.x and y == heldpiece.y then
 						drawpiece(cpiece, padleft + size * x/8, padtop + size * (y + lerp(0, math.sin(GAMESTATE:GetSongTime()*1.5)*wobblesize, heldanim))/8, lerp(1, 0.5, heldanim))
 					else
-						drawpiece(cpiece, padleft + size * x/8, padtop + size * y/8)
+						local dodraw = true
+						for i,v in ipairs(easedpieces) do
+							if x == v.x and y == v.y then
+								dodraw = false
+							end
+						end
+						if dodraw then
+							drawpiece(cpiece, padleft + size * x/8, padtop + size * y/8)
+						end
 					end
 				end
 			end
+		end
+		local easestoremove = {}
+		for i,v in ipairs(easedpieces) do
+			drawpiece(v.p, padleft + size * v.cx/8, padtop + size * v.cy/8)
+			
+			easedpieces[i].cx = lerp(easedpieces[i].cx, easedpieces[i].x, 0.1)
+			easedpieces[i].cy = lerp(easedpieces[i].cy, easedpieces[i].y, 0.1)
+			easedpieces[i].t = easedpieces[i].t + 1
+			if easedpieces[i].t >= 100 then
+				table.insert(easestoremove,i)
+			end
+		end
+		for i,v in ipairs(easestoremove) do
+			table.remove(easedpieces,v-i+1)
 		end
 	end
 
@@ -360,6 +385,18 @@
 
 							print('this is an ok move')
 							pos = pos:move(move)
+							print(move[1])
+							print(move[2])
+							
+							print(move[1]%10)
+							print(math.floor(move[1]/10)-1)
+							table.insert(easedpieces,{
+								x= move[2]%10 - 1, y= math.floor(move[2]/10) - 2, 
+								cx= move[1]%10 - 1, cy= math.floor(move[1]/10) - 2,
+								t = 0,
+								p = pstrtopnum[ board[move[1]%10][math.floor(move[1]/10)-1] ]
+								
+							})
 							
 							local move, score = search(pos)
 							assert(score)
