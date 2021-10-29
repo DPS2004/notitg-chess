@@ -31,6 +31,8 @@
 	--set nearest neighbor for certain sprites
 	piecespr[2]:SetTextureFiltering(false)
 	piecespr[7]:SetTextureFiltering(false)
+	-- what
+	piecespr[8]:SetTexture(aft:GetTexture())
 	
 	skintext:x(SCREEN_WIDTH/2)
 	skintext:y(SCREEN_HEIGHT/1.4)
@@ -113,13 +115,46 @@
 	boardtile:zoomto(size / 8, size / 8)
 	boardtile:align(0, 0)
 	
+	local renderingpiece = 1
 	local function drawpiece(p,x,y,o,r)
 		o = o or 1
 		piece:x(x + 0.5 * size/8)
 		piece:y(y + 0.5 * size/8)
 		piece:rotationz(r or 0)
+		if renderingpiece ~= 8 then
+			piece:setstate(p)
+		else
+			-- im sorry. scaling code sucks
+			local tex = piece:GetTexture()
+			local w = tex:GetImageWidth()
+			local h = tex:GetImageHeight()
+			local tsize = math.min(w, h)
+			local croph = 1 - size / sw
+			local cropv = 1 - size / sh
+
+			piece:zoomto(size / 8 * (1 / (1 - croph)), -size / 8 * (1 / (1 - cropv)))
+			piece:croptop(cropv/2)
+			piece:cropbottom(cropv/2)
+			piece:cropleft(croph/2)
+			piece:cropright(croph/2)
+			if p == 6 or p == 0 then
+				analys:x(x + 0.5 * size/8)
+				analys:y(y + 0.5 * size/8)
+				analys:rotationz(r or 0)
+				if p == 6 then analys:diffuse(0.5, 0.5, 0.5, 1) else analys:diffuse(1, 1, 1, 1) end
+				analys:diffusealpha(o)
+				analys:zoomto(size / 8, size / 8)
+				analys:Draw()
+				return
+			elseif p > 5 then
+				piece:diffuse(0.5, 0.5, 0.5, 1)
+				piece:glow(0, 0, 0, 0)
+			else
+				piece:diffuse(1, 1, 1, 1)
+				piece:glow(1, 1, 1, 0.2)
+			end
+		end
 		piece:diffusealpha(o)
-		piece:setstate(p)
 		piece:Draw()
 	end
 	local function drawtile(p,x,y)
@@ -300,7 +335,7 @@
 		end
 	end
 	
-	local sproptions = {'wiki','pico','boring','plastic','dunno','geometric','fantasy'}
+	local sproptions = {'wiki','pico','boring','plastic','dunno','geometric','fantasy','aft'}
 	local sprselection = 1
 	local lasttime = 0
 	chess:SetDrawFunction(function(self)
@@ -326,6 +361,7 @@
 		--end
 		if gamestate == 0 then
 			for i,v in ipairs(sproptions) do
+				renderingpiece = i
 				piece = piecespr[i]
 				drawpiece(3,(i-sprselection+3.11)*size*0.2,SCREEN_HEIGHT/2)
 			end
@@ -352,6 +388,7 @@
 				skintext:settext(sproptions[sprselection])
 				if d[2] == -1 then
 					gamestate = 1
+					renderingpiece = sprselection
 					piece = piecespr[sprselection]
 					skintext:settext('')
 					PP[1]:hidden(1)
@@ -474,6 +511,8 @@ Type = "ActorFrame"
 		<Layer File = 'dunno.sprite' Name = "piecespr[5]" />
 		<Layer File = 'geometric.sprite' Name = "piecespr[6]" />
 		<Layer File = 'fantasy.sprite' Name = "piecespr[7]" />
+		<Layer Type = "Sprite" Name = "piecespr[8]"/>
+		<Layer File = 'analys' Name = "analys" />
 		<Layer File = 'board.sprite' Name = "boardtile" />
 		<Layer Type = "Polygon" Name = "cursor" />
 		<Layer Type = "Polygon" Name = "movespot" />
@@ -481,5 +520,7 @@ Type = "ActorFrame"
 	<Layer Name = "badmovetext" Type="BitmapText" Font="_wendy small" Text=""/>
 	<Layer Name = "skintext" Type="BitmapText" Font="_wendy small" Text="wiki"/>
 	<Layer Type = "ActorProxy" Name = "PP[1]" />
+
+	<Layer Type = "ActorFrameTexture" Name = "aft" InitCommand = "%xero.aft"/>
 
 </children></Mods>
