@@ -17,6 +17,27 @@
 		P[pn]:hidden(1)
 	end
 	-- your code goes here here:
+	
+	badmovetext:x(SCREEN_WIDTH/2)
+	badmovetext:y(SCREEN_HEIGHT/2)
+	badmovetext:vibrate()
+	badmovetext:glow(1,0,0,1)
+	badmovetimer = 0
+	firstbadmove = true
+	youfuckedup = {
+		'NOPE',
+		'TRY AGAIN',
+		'THINK FAST CHUCKLENUTS',
+		'133.221.26.29',
+		'YOU FUCKED UP',
+		'ACCESS VIOLATION',
+		'CAR???',
+		'KONAMI WILL SUE',
+		'IT\'S A FEATURE',
+		'FORBIDDEN',
+		'BRING ME HANK',
+		'>:(',
+	}
 
 	local function lerp(x, y, a)
 		return x * (1 - a) + y * a
@@ -256,13 +277,31 @@
 						heldpiece.y = -1
 					else
 						print('this is NOT an ok move!!!')
+						badmovetimer = 100
+						if firstbadmove then
+							badmovetext:settext('ILLEGAL MOVE')
+							firstbadmove = false
+						else
+							badmovetext:settext(youfuckedup[math.random(1,#youfuckedup)])
+						end
 					end
 				end
 				print(heldpiece.x)
 				print(heldpiece.y)
 			end
 		end}
+		
 	end
+	func {0, 9e9, function() 
+		if badmovetimer > 0 then
+			badmovetimer = badmovetimer - 1
+			if badmovetimer <= 0 then
+				badmovetext:settext('')
+			end
+		end
+	end}
+	
+
 end)"
 Type = "ActorFrame"
 ><children>
@@ -278,4 +317,5 @@ Type = "ActorFrame"
 		<Layer File = 'board.sprite' Name = "boardtile" />
 		<Layer Type = "Polygon" Name = "cursor" />
 	</children> </Layer>
+	<Layer Name = "badmovetext" Type="BitmapText" Font="_wendy small" Text=""/>
 </children></Mods>
