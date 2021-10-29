@@ -198,6 +198,9 @@
 			easedpieces[i].t = easedpieces[i].t + 1
 			if easedpieces[i].t >= 100 then
 				table.insert(easestoremove,i)
+				if easedpieces[i].finish then
+					easedpieces[i].finish()
+				end
 			end
 		end
 		for i,v in ipairs(easestoremove) do
@@ -385,37 +388,34 @@
 
 							print('this is an ok move')
 							pos = pos:move(move)
-							print(move[1])
-							print(move[2])
-							
-							print(move[1]%10)
-							print(math.floor(move[1]/10)-1)
 							table.insert(easedpieces,{
 								x= move[2]%10 - 1, y= math.floor(move[2]/10) - 2, 
 								cx= move[1]%10 - 1, cy= math.floor(move[1]/10) - 2,
 								t = 0,
-								p = pstrtopnum[ board[move[1]%10][math.floor(move[1]/10)-1] ]
-								
+								p = pstrtopnum[ board[move[1]%10][math.floor(move[1]/10)-1] ],
+								finish = function()
+									local move, score = search(pos)
+									assert(score)
+									
+									if score <= -MATE_VALUE then
+										print('You won')
+									end
+									if score >= MATE_VALUE then
+										print('You lost')
+									end
+									
+									assert(move)
+									
+									pos = pos:move(move)
+									
+									board = boardtotable(pos.board)
+									
+									circlesizeto = 0
+									heldanimto = 0
+								end
 							})
 							
-							local move, score = search(pos)
-							assert(score)
 							
-							if score <= -MATE_VALUE then
-								print('You won')
-							end
-							if score >= MATE_VALUE then
-								print('You lost')
-							end
-							
-							assert(move)
-							
-							pos = pos:move(move)
-							
-							board = boardtotable(pos.board)
-							
-							circlesizeto = 0
-							heldanimto = 0
 						else
 							print('this is NOT an ok move!!!')
 							badmovetimer = 100
