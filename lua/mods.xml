@@ -30,6 +30,7 @@
 	
 	--set nearest neighbor for certain sprites
 	piecespr[2]:SetTextureFiltering(false)
+	piecespr[7]:SetTextureFiltering(false)
 	
 	skintext:x(SCREEN_WIDTH/2)
 	skintext:y(SCREEN_HEIGHT/1.4)
@@ -179,8 +180,8 @@
 		end
 	end
 
-	local cursorx, cursory = 0, 0
-	local cursorxto, cursoryto = 0, 0
+	local cursorx, cursory = 3, 6
+	local cursorxto, cursoryto = 3, 6
 
 	-- squircle rendering code (oh god please help)
 	local corners = {{0, 0}, {1, 0}, {1, 1}, {0, 1}}
@@ -261,7 +262,7 @@
 		end
 	end
 	
-	local sproptions = {'wiki','pico','boring','plastic','dunno'}
+	local sproptions = {'wiki','pico','boring','plastic','dunno','geometric','fantasy'}
 	local sprselection = 1
 	local lasttime = 0
 	chess:SetDrawFunction(function(self)
@@ -421,6 +422,8 @@ Type = "ActorFrame"
 		<Layer File = 'boring.sprite' Name = "piecespr[3]" />
 		<Layer File = 'plastic.sprite' Name = "piecespr[4]" />
 		<Layer File = 'dunno.sprite' Name = "piecespr[5]" />
+		<Layer File = 'geometric.sprite' Name = "piecespr[6]" />
+		<Layer File = 'fantasy.sprite' Name = "piecespr[7]" />
 		<Layer File = 'board.sprite' Name = "boardtile" />
 		<Layer Type = "Polygon" Name = "cursor" />
 		<Layer Type = "Polygon" Name = "movespot" />
