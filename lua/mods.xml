@@ -151,7 +151,7 @@
 					transition = 0
 				end
 
-				local offset = math.sin(t * 0.6 * (1 + i1/9) + i1 + i1/2) * sh * 0.03 + sh * inQuad(transition) * ((i2 + 1) % 2 * 2 - 1)
+				local offset = math.sin(t * 0.6 * (1 + i1/9) + i1 + i1/2) * sh * 0.03 + sh * 0.75 * inQuad(transition) * ((i2 + 1) % 2 * 2 - 1)
 
 				a:scaletocover(0, offset, sw, sh + offset)
 				a:hidden(0)
