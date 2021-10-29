@@ -27,6 +27,12 @@
 	}
 	P[2]:hidden(1)
 	gamestate = 0
+	extramod = 0
+	
+	movespeed = 0.1
+	movelength = 100
+	
+	emstrings = {'','Explosive','Molasses'}
 	
 	--set nearest neighbor for certain sprites
 	piecespr[2]:SetTextureFiltering(false)
@@ -37,6 +43,10 @@
 	skintext:x(SCREEN_WIDTH/2)
 	skintext:y(SCREEN_HEIGHT/1.4)
 	skintext:zoom(0.5)
+	
+	emtext:x(SCREEN_WIDTH/2)
+	emtext:y(SCREEN_HEIGHT/1.3)
+	emtext:zoom(0.25)
 	
 	badmovetext:x(SCREEN_WIDTH/2)
 	badmovetext:y(SCREEN_HEIGHT/2)
@@ -55,6 +65,8 @@
 		'KONAMI WILL SUE',
 		'IT\'S A FEATURE',
 		'FORBIDDEN',
+		'HERD U WERE TALKING SHIT',
+		'[[HYPERLINK BLOCKED]]',
 		'BRING ME HANK',
 		'UNINSTALL AVAST',
 		'ASDFGHJKL;',
@@ -104,6 +116,7 @@
 	board = boardtotable(pos.board) --only call this when board needs to be updated
 	
 	--set sprite layers to not animate
+	
 	
 	function initpiecespr()
 	
@@ -228,10 +241,10 @@
 		for i,v in ipairs(easedpieces) do
 			drawpiece(v.p, padleft + size * v.cx/8, padtop + size * v.cy/8)
 			
-			easedpieces[i].cx = lerp(easedpieces[i].cx, easedpieces[i].x, 0.1)
-			easedpieces[i].cy = lerp(easedpieces[i].cy, easedpieces[i].y, 0.1)
+			easedpieces[i].cx = lerp(easedpieces[i].cx, easedpieces[i].x, movespeed)
+			easedpieces[i].cy = lerp(easedpieces[i].cy, easedpieces[i].y, movespeed)
 			easedpieces[i].t = easedpieces[i].t + 1
-			if easedpieces[i].t >= 100 then
+			if easedpieces[i].t >= movelength then
 				table.insert(easestoremove,i)
 				if easedpieces[i].finish then
 					easedpieces[i].finish()
@@ -242,7 +255,7 @@
 			table.remove(easedpieces,v-i+1)
 		end
 	end
-
+	
 	local cursorx, cursory = 3, 6
 	local cursorxto, cursoryto = 3, 6
 	local cursorzoom, cursorzoomto = 1, 1
@@ -386,13 +399,23 @@
 			if gamestate == 0 then
 				sprselection = clamp(sprselection + d[1], 1, #sproptions)
 				skintext:settext(sproptions[sprselection])
+				if d[2] == 1 then
+					extramod = (extramod + 1) % #emstrings
+					emtext:settext(emstrings[extramod+1])
+				end
 				if d[2] == -1 then
 					gamestate = 1
 					renderingpiece = sprselection
 					piece = piecespr[sprselection]
 					skintext:settext('')
+					emtext:settext('')
 					PP[1]:hidden(1)
 					initpiecespr()
+					
+					if extramod == 2 then -- molasses mode
+						movespeed = 0.005
+						movelength = 1500
+					end
 				end
 			end
 		end)
@@ -438,6 +461,7 @@
 
 							print('this is an ok move')
 							pos = pos:move(move)
+							
 							table.insert(easedpieces,{
 								x= move[2]%10 - 1, y= math.floor(move[2]/10) - 2, 
 								cx= move[1]%10 - 1, cy= math.floor(move[1]/10) - 2,
@@ -473,6 +497,9 @@
 									heldanimto = 0
 								end
 							})
+							heldpiece.x = -1
+							heldpiece.y = -1
+							heldanimto = 0
 							
 							
 						else
@@ -528,6 +555,7 @@ Type = "ActorFrame"
 	</children> </Layer>
 	<Layer Name = "badmovetext" Type="BitmapText" Font="_wendy small" Text=""/>
 	<Layer Name = "skintext" Type="BitmapText" Font="_wendy small" Text="wiki"/>
+	<Layer Name = "emtext" Type="BitmapText" Font="_wendy small" Text=""/>
 	<Layer Type = "ActorProxy" Name = "PP[1]" />
 
 	<Layer Type = "ActorFrameTexture" Name = "aft" InitCommand = "%xero.aft"/>
