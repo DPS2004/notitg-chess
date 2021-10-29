@@ -1,5 +1,5 @@
 [Sprite]
-Texture=chess 6x2.png
+Texture=pico 6x2.png
 Frame0000=0
 Delay0000=0.06
 Frame0001=1

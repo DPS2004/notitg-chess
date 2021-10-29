@@ -1,0 +1,5 @@
+-----------SKINS-------------
+Wiki skin:    from https://commons.wikimedia.org/wiki/Template:SVG_chess_pieces    (CC--BY-SA 3.0)
+Pico skin:    from https://www.lexaloffle.com/bbs/?pid=52226                       (CC4-BY-NC-SA)
+Boring skin:  from me :)
+Plastic skin: from https://www.amazon.com/Chess-Pieces-Pawns-Tournament-Board/dp/B07QW6GTHB

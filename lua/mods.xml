@@ -18,6 +18,19 @@
 	end
 	-- your code goes here here:
 	
+	setdefault { 
+		200, 'tiny0',
+		200,'tiny1',
+		200,'tiny3',
+		128,'x',
+		64,'y'
+	}
+	P[2]:hidden(1)
+	gamestate = 0
+	
+	--set nearest neighbor for certain sprites
+	piecespr[2]:SetTextureFiltering(false)
+	
 	badmovetext:x(SCREEN_WIDTH/2)
 	badmovetext:y(SCREEN_HEIGHT/2)
 	badmovetext:vibrate()
@@ -81,10 +94,14 @@
 	board = boardtotable(pos.board) --only call this when board needs to be updated
 	
 	--set sprite layers to not animate
-	piece:animate(0)
+	
+	function initpiecespr()
+	
+		piece:animate(0)
+		piece:zoomto(size / 8, size / 8)
+		--piece:align(0, 0)
+	end
 	boardtile:animate(0)
-	piece:zoomto(size / 8, size / 8)
-	--piece:align(0, 0)
 	boardtile:zoomto(size / 8, size / 8)
 	boardtile:align(0, 0)
 	
@@ -240,25 +257,35 @@
 		end
 	end
 	
+	local sproptions = {'wiki','pico','boring','plastic'}
+	local sprselection = 1
 	local lasttime = 0
 	chess:SetDrawFunction(function(self)
 		local dt = GAMESTATE:GetSongTime() - lasttime
 		lasttime = GAMESTATE:GetSongTime()
-
-		cursorx, cursory = lerp(cursorx, cursorxto, dt * 12), lerp(cursory, cursoryto, dt * 12)
-		circlesize = lerp(circlesize, circlesizeto, dt * 18)
-		heldanim = lerp(heldanim, heldanimto, dt * 10)
-		heldpiece.dx, heldpiece.dy = lerp(heldpiece.dx, cursorxto, dt * 6), lerp(heldpiece.dy, cursoryto, dt * 6)
-
-		drawboard()
-		drawpieces()
-		if heldanim > 0.1 or circlesize > 0.1 then
-			drawMovespots()
+		if gamestate == 1 then
+			cursorx, cursory = lerp(cursorx, cursorxto, dt * 12), lerp(cursory, cursoryto, dt * 12)
+			circlesize = lerp(circlesize, circlesizeto, dt * 18)
+			heldanim = lerp(heldanim, heldanimto, dt * 10)
+			heldpiece.dx, heldpiece.dy = lerp(heldpiece.dx, cursorxto, dt * 6), lerp(heldpiece.dy, cursoryto, dt * 6)
 		end
-		drawcursor(padleft + size * cursorx / 8, padtop + size * cursory / 8)
+		drawboard()
+		if gamestate == 1 then
+			drawpieces()
+			if heldanim > 0.1 or circlesize > 0.1 then
+				drawMovespots()
+			end
+			drawcursor(padleft + size * cursorx / 8, padtop + size * cursory / 8)
+		end
 		--for i=0,11 do
 			--drawpiece(i,i*50+50,SCREEN_HEIGHT/2+math.sin(i)*50)
 		--end
+		if gamestate == 0 then
+			for i,v in ipairs(sproptions) do
+				piece = piecespr[i]
+				drawpiece(3,(i-sprselection+3.11)*size*0.2,SCREEN_HEIGHT/2)
+			end
+		end
 	end)
 
 	-- setup input
@@ -276,74 +303,89 @@
 		local pressedAt = -1
 		self:addcommand('StepP' .. 1 .. v .. 'Press' .. 'Message', function()
 			pressedAt = GAMESTATE:GetSongTime()
+			if gamestate == 0 then
+				sprselection = clamp(sprselection + d[1], 1, #sproptions)
+				if d[2] == -1 then
+					gamestate = 1
+					piece = piecespr[sprselection]
+					PP[1]:hidden(1)
+					initpiecespr()
+				end
+			end
 		end)
 		self:addcommand('StepP' .. 1 .. v .. 'Lift' .. 'Message', function()
 			local dt = GAMESTATE:GetSongTime() - pressedAt
+
 			if dt < holdtimer then
-				Trace('moved cursor ' .. v .. '!')
-				cursorxto, cursoryto = clamp(cursorxto + d[1], 0, 7), clamp(cursoryto + d[2], 0, 7)
+				if gamestate == 1 then
+					Trace('moved cursor ' .. v .. '!')
+					cursorxto, cursoryto = clamp(cursorxto + d[1], 0, 7), clamp(cursoryto + d[2], 0, 7)
+				end
 				pressedAt = -1
 			end
 		end)
 
 		func {0, 9e9, function()
-			if pressedAt == -1 then return end
-			local dt = GAMESTATE:GetSongTime() - pressedAt
-			if dt >= holdtimer then
-				Trace('holding piece!')
-				
-				pressedAt = -1
-				if heldpiece.x == cursorxto and heldpiece.y == cursoryto and heldanimto == 1 then -- holding on already selected piece, unselect
-					circlesizeto = 0
-					heldanimto = 0
-				elseif heldanimto == 0 and pstrtopnum[ board[cursorxto+1][cursoryto+1] ]  then -- no held piece, select current piece
-					heldpiece.x = cursorxto
-					heldpiece.y = cursoryto
-					heldpiece.dx = cursorxto
-					heldpiece.dy = cursoryto
-					circlesizeto = 1
-					heldanimto = 1
-					movespotsCache = {}
-					heldcpiece = pstrtopnum[ board[heldpiece.x+1][heldpiece.y+1] ]
-				elseif heldanimto == 1 then-- selecting a different piece with an already held piece, try to move held piece to this spot!
-					local crdn = sfletters[heldpiece.x + 1] .. tostring(8 - heldpiece.y) .. sfletters[cursorxto + 1] .. tostring(8 - cursoryto) 
-					-- this generates a move string that sunfish accepts (eg: a2a3)
-					local move = {parse(string.sub(crdn, 1, 2)), parse(string.sub(crdn, 3, 4))}
-					if move[1] and move[2] and ttfind(pos:genMoves(), move) then
-						print('this is an ok move')
-						pos = pos:move(move)
-						
-						local move, score = search(pos)
-						assert(score)
-						
-						if score <= -MATE_VALUE then
-							print('You won')
-						end
-						if score >= MATE_VALUE then
-							print('You lost')
-						end
-						
-						assert(move)
-						
-						pos = pos:move(move)
-						
-						board = boardtotable(pos.board)
-						
+			if gamestate == 1 then	
+				if pressedAt == -1 then return end
+				local dt = GAMESTATE:GetSongTime() - pressedAt
+				if dt >= holdtimer then
+					Trace('holding piece!')
+					
+					pressedAt = -1
+					if heldpiece.x == cursorxto and heldpiece.y == cursoryto and heldanimto == 1 then -- holding on already selected piece, unselect
 						circlesizeto = 0
 						heldanimto = 0
-					else
-						print('this is NOT an ok move!!!')
-						badmovetimer = 100
-						if firstbadmove then
-							badmovetext:settext('ILLEGAL MOVE')
-							firstbadmove = false
+					elseif heldanimto == 0 and pstrtopnum[ board[cursorxto+1][cursoryto+1] ]  then -- no held piece, select current piece
+						heldpiece.x = cursorxto
+						heldpiece.y = cursoryto
+						heldpiece.dx = cursorxto
+						heldpiece.dy = cursoryto
+						circlesizeto = 1
+						heldanimto = 1
+						movespotsCache = {}
+						heldcpiece = pstrtopnum[ board[heldpiece.x+1][heldpiece.y+1] ]
+					elseif heldanimto == 1 then-- selecting a different piece with an already held piece, try to move held piece to this spot!
+						local crdn = sfletters[heldpiece.x + 1] .. tostring(8 - heldpiece.y) .. sfletters[cursorxto + 1] .. tostring(8 - cursoryto) 
+						-- this generates a move string that sunfish accepts (eg: a2a3)
+						local move = {parse(string.sub(crdn, 1, 2)), parse(string.sub(crdn, 3, 4))}
+						if move[1] and move[2] and ttfind(pos:genMoves(), move) then
+
+							print('this is an ok move')
+							pos = pos:move(move)
+							
+							local move, score = search(pos)
+							assert(score)
+							
+							if score <= -MATE_VALUE then
+								print('You won')
+							end
+							if score >= MATE_VALUE then
+								print('You lost')
+							end
+							
+							assert(move)
+							
+							pos = pos:move(move)
+							
+							board = boardtotable(pos.board)
+							
+							circlesizeto = 0
+							heldanimto = 0
 						else
-							badmovetext:settext(youfuckedup[math.random(1,#youfuckedup)])
+							print('this is NOT an ok move!!!')
+							badmovetimer = 100
+							if firstbadmove then
+								badmovetext:settext('ILLEGAL MOVE')
+								firstbadmove = false
+							else
+								badmovetext:settext(youfuckedup[math.random(1,#youfuckedup)])
+							end
 						end
 					end
+					print(heldpiece.x)
+					print(heldpiece.y)
 				end
-				print(heldpiece.x)
-				print(heldpiece.y)
 			end
 		end}
 		
@@ -365,14 +407,18 @@ Type = "ActorFrame"
 	<Layer Type = "ActorProxy" Name = "PC[2]" />
 	<Layer Type = "ActorProxy" Name = "PJ[1]" />
 	<Layer Type = "ActorProxy" Name = "PJ[2]" />
-	<Layer Type = "ActorProxy" Name = "PP[1]" />
-	<Layer Type = "ActorProxy" Name = "PP[2]" />
+
 	
 	<Layer Type = "ActorFrame" Name = "chess"> <children>
-		<Layer File = 'chess.sprite' Name = "piece" />
+		<Layer File = 'wiki.sprite' Name = "piecespr[1]" />
+		<Layer File = 'pico.sprite' Name = "piecespr[2]" />
+		<Layer File = 'boring.sprite' Name = "piecespr[3]" />
+		<Layer File = 'plastic.sprite' Name = "piecespr[4]" />
 		<Layer File = 'board.sprite' Name = "boardtile" />
 		<Layer Type = "Polygon" Name = "cursor" />
 		<Layer Type = "Polygon" Name = "movespot" />
 	</children> </Layer>
 	<Layer Name = "badmovetext" Type="BitmapText" Font="_wendy small" Text=""/>
+	<Layer Type = "ActorProxy" Name = "PP[1]" />
+
 </children></Mods>
