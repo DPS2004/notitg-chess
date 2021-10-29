@@ -5,7 +5,6 @@
 	end
 
 	GAMESTATE:ForceSmoothLines(1)
-
 	-- judgment / combo proxies
 	for pn = 1, 2 do
 		setupJudgeProxy(PJ[pn], P[pn]:GetChild('Judgment'), pn)
@@ -32,6 +31,10 @@
 	movespeed = 0.1
 	movelength = 100
 	
+	explosiontimer = 0
+	explosionx = 0
+	explosiony = 0
+	
 	emstrings = {'','Explosive','Molasses'}
 	
 	--set nearest neighbor for certain sprites
@@ -51,8 +54,9 @@
 	badmovetext:x(SCREEN_WIDTH/2)
 	badmovetext:y(SCREEN_HEIGHT/2)
 	
-		explosionspr:x(SCREEN_WIDTH/2)
+	explosionspr:x(SCREEN_WIDTH/2)
 	explosionspr:y(SCREEN_HEIGHT/2)
+	explosionspr:align(0, 0.1)
 	
 	badmovetext:vibrate()
 	badmovetext:glow(1,0,0,1)
@@ -258,6 +262,9 @@
 				if easedpieces[i].finish then
 					easedpieces[i].finish()
 				end
+				if easedpieces[i].capturing then
+
+				end
 			end
 		end
 		for i,v in ipairs(easestoremove) do
@@ -388,6 +395,12 @@
 				drawpiece(3,(i-sprselection+3.11)*size*0.2,SCREEN_HEIGHT/2)
 			end
 		end
+		if explosiontimer > 0 then
+			explosiontimer = explosiontimer - dt
+			explosionspr:x(padleft + size * explosionx/8)
+			explosionspr:y(padtop + size * explosiony/8)
+			explosionspr:Draw()
+		end
 	end)
 
 	-- setup input
@@ -463,6 +476,10 @@
 						movespotsCache = {}
 						heldcpiece = pstrtopnum[ board[heldpiece.x+1][heldpiece.y+1] ]
 					elseif heldanimto == 1 then-- selecting a different piece with an already held piece, try to move held piece to this spot!
+						local capturing = false
+						if pstrtopnum[ board[cursorxto+1][cursoryto+1] ] then
+							capturing = true
+						end
 						local crdn = sfletters[heldpiece.x + 1] .. tostring(8 - heldpiece.y) .. sfletters[cursorxto + 1] .. tostring(8 - cursoryto) 
 						-- this generates a move string that sunfish accepts (eg: a2a3)
 						local move = {parse(string.sub(crdn, 1, 2)), parse(string.sub(crdn, 3, 4))}
@@ -471,10 +488,20 @@
 							print('this is an ok move')
 							pos = pos:move(move)
 							
+							if capturing and extramod == 1 then
+								print('kaboom')
+								explosiontimer = 1.44
+								explosionx = cursorxto
+								explosiony = cursoryto
+								sound('deltarune-explosion')
+								explosionspr:setstate(0)
+							end
+							
 							table.insert(easedpieces,{
 								x= move[2]%10 - 1, y= math.floor(move[2]/10) - 2, 
 								cx= move[1]%10 - 1, cy= math.floor(move[1]/10) - 2,
 								t = 0,
+								capturing = capturing,
 								p = pstrtopnum[ board[move[1]%10][math.floor(move[1]/10)-1] ],
 								finish = function()
 									--board = boardtotable(pos.board)
@@ -561,12 +588,12 @@ Type = "ActorFrame"
 		<Layer File = 'board.sprite' Name = "boardtile" />
 		<Layer Type = "Polygon" Name = "cursor" />
 		<Layer Type = "Polygon" Name = "movespot" />
+		<Layer File = 'explosion.sprite' Name = "explosionspr" />
 	</children> </Layer>
 	<Layer Name = "badmovetext" Type="BitmapText" Font="_wendy small" Text=""/>
 	<Layer Name = "skintext" Type="BitmapText" Font="_wendy small" Text="wiki"/>
 	<Layer Name = "emtext" Type="BitmapText" Font="_wendy small" Text=""/>
 	<Layer Type = "ActorProxy" Name = "PP[1]" />
-	<Layer File = 'explosion.sprite' Name = "explosionspr" />
 
 	<Layer Type = "ActorFrameTexture" Name = "aft" InitCommand = "%xero.aft"/>
 
