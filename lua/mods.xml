@@ -31,6 +31,10 @@
 	--set nearest neighbor for certain sprites
 	piecespr[2]:SetTextureFiltering(false)
 	
+	skintext:x(SCREEN_WIDTH/2)
+	skintext:y(SCREEN_HEIGHT/1.4)
+	skintext:zoom(0.5)
+	
 	badmovetext:x(SCREEN_WIDTH/2)
 	badmovetext:y(SCREEN_HEIGHT/2)
 	badmovetext:vibrate()
@@ -257,7 +261,7 @@
 		end
 	end
 	
-	local sproptions = {'wiki','pico','boring','plastic'}
+	local sproptions = {'wiki','pico','boring','plastic','dunno'}
 	local sprselection = 1
 	local lasttime = 0
 	chess:SetDrawFunction(function(self)
@@ -305,9 +309,11 @@
 			pressedAt = GAMESTATE:GetSongTime()
 			if gamestate == 0 then
 				sprselection = clamp(sprselection + d[1], 1, #sproptions)
+				skintext:settext(sproptions[sprselection])
 				if d[2] == -1 then
 					gamestate = 1
 					piece = piecespr[sprselection]
+					skintext:settext('')
 					PP[1]:hidden(1)
 					initpiecespr()
 				end
@@ -414,11 +420,13 @@ Type = "ActorFrame"
 		<Layer File = 'pico.sprite' Name = "piecespr[2]" />
 		<Layer File = 'boring.sprite' Name = "piecespr[3]" />
 		<Layer File = 'plastic.sprite' Name = "piecespr[4]" />
+		<Layer File = 'dunno.sprite' Name = "piecespr[5]" />
 		<Layer File = 'board.sprite' Name = "boardtile" />
 		<Layer Type = "Polygon" Name = "cursor" />
 		<Layer Type = "Polygon" Name = "movespot" />
 	</children> </Layer>
 	<Layer Name = "badmovetext" Type="BitmapText" Font="_wendy small" Text=""/>
+	<Layer Name = "skintext" Type="BitmapText" Font="_wendy small" Text="wiki"/>
 	<Layer Type = "ActorProxy" Name = "PP[1]" />
 
 </children></Mods>

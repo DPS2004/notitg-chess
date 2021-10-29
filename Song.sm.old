@@ -6,25 +6,33 @@
 #ARTISTTRANSLIT:;
 #GENRE:;
 #CREDIT:;
-#MUSIC:21-Toby-Fox-Checkerboard-Memories.ogg;
-#BANNER:;
+#BANNER:bn.png;
 #BACKGROUND:;
+#LYRICSPATH:;
 #CDTITLE:;
+#MUSIC:21-Toby-Fox-Checkerboard-Memories.ogg;
+#OFFSET:0.029;
 #SAMPLESTART:7.359;
 #SAMPLELENGTH:12.000;
 #SELECTABLE:YES;
-#OFFSET:0.029;
 #BPMS:0.000=1.000;
 #STOPS:;
+#TIMESIGNATURES:0.000=4=4;
 #BGCHANGES:;
-#FGCHANGES:0.000=template/main.xml=1.000=0=0=1;
-//--------------- dance-single -  ----------------
+
+//The majority of simfile scripts and visual effects are stored here.
+#FGCHANGES:0.000=template/main.xml=1.000=0=0=1=====,
+;
+
+#KEYSOUNDS:;
+
+//---------------dance-single - ----------------
 #NOTES:
      dance-single:
      :
      Easy:
      1:
-     0.05,0.487,0,0.13,0.014:
+     0.000,0.000,0.000,0.000,0.000:
 0000
 0000
 0000
@@ -525,13 +533,15 @@ M000
 00M0
 000M
 ;
-//--------------- dance-single -  ----------------
+
+
+//---------------dance-single - ----------------
 #NOTES:
      dance-single:
      :
      Medium:
      2:
-     0,0,0,0,0:
+     0.000,0.000,0.000,0.000,0.000:
 0000
 0000
 0000
@@ -1037,13 +1047,15 @@ M000
 00M0
 000M
 ;
-//--------------- dance-single -  ----------------
+
+
+//---------------dance-single - ----------------
 #NOTES:
      dance-single:
      :
      Hard:
      3:
-     0,0,0,0,0:
+     0.000,0.000,0.000,0.000,0.000:
 0000
 0000
 0000
@@ -1549,13 +1561,15 @@ M000
 00M0
 000M
 ;
-//--------------- dance-single -  ----------------
+
+
+//---------------dance-single - ----------------
 #NOTES:
      dance-single:
      :
      Challenge:
      4:
-     0,0,0,0,0:
+     0.000,0.000,0.000,0.000,0.000:
 0000
 0000
 0000
@@ -2061,3 +2075,4 @@ M000
 00M0
 000M
 ;
+
