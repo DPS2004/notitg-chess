@@ -444,6 +444,7 @@
 								t = 0,
 								p = pstrtopnum[ board[move[1]%10][math.floor(move[1]/10)-1] ],
 								finish = function()
+									--board = boardtotable(pos.board)
 									local move, score = search(pos)
 									assert(score)
 									
@@ -457,6 +458,14 @@
 									assert(move)
 									
 									pos = pos:move(move)
+									
+									table.insert(easedpieces,{
+										x= 7-(move[2]%10 - 1), y= 7-(math.floor(move[2]/10) - 2), 
+										cx= 7-(move[1]%10 - 1), cy= 7-(math.floor(move[1]/10) - 2),
+										t = 0,
+										p = pstrtopnum[ board[8-(move[1]%10 - 1)][8-(math.floor(move[1]/10) - 2)] ]
+									})
+
 									
 									board = boardtotable(pos.board)
 									
