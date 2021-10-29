@@ -50,6 +50,10 @@
 	
 	badmovetext:x(SCREEN_WIDTH/2)
 	badmovetext:y(SCREEN_HEIGHT/2)
+	
+		explosionspr:x(SCREEN_WIDTH/2)
+	explosionspr:y(SCREEN_HEIGHT/2)
+	
 	badmovetext:vibrate()
 	badmovetext:glow(1,0,0,1)
 	badmovetimer = 0
@@ -73,7 +77,12 @@
 		'START RUNNING',
 		'>:(',
 	}
-
+	
+	function sound(str)
+		local dir = GAMESTATE:GetCurrentSong():GetSongDir();
+		SOUND:PlayOnce(dir..'lua/'..str..'.ogg');
+	end
+	
 	local function lerp(x, y, a)
 		return x * (1 - a) + y * a
 	end
@@ -557,6 +566,7 @@ Type = "ActorFrame"
 	<Layer Name = "skintext" Type="BitmapText" Font="_wendy small" Text="wiki"/>
 	<Layer Name = "emtext" Type="BitmapText" Font="_wendy small" Text=""/>
 	<Layer Type = "ActorProxy" Name = "PP[1]" />
+	<Layer File = 'explosion.sprite' Name = "explosionspr" />
 
 	<Layer Type = "ActorFrameTexture" Name = "aft" InitCommand = "%xero.aft"/>
 
