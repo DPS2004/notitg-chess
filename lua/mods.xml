@@ -84,14 +84,15 @@
 	piece:animate(0)
 	boardtile:animate(0)
 	piece:zoomto(size / 8, size / 8)
-	piece:align(0, 0)
+	--piece:align(0, 0)
 	boardtile:zoomto(size / 8, size / 8)
 	boardtile:align(0, 0)
 	
-	local function drawpiece(p,x,y,o)
+	local function drawpiece(p,x,y,o,r)
 		o = o or 1
-		piece:x(x)
-		piece:y(y)
+		piece:x(x + 0.5 * size/8)
+		piece:y(y + 0.5 * size/8)
+		piece:rotationz(r or 0)
 		piece:diffusealpha(o)
 		piece:setstate(p)
 		piece:Draw()
@@ -130,8 +131,13 @@
 		r = 10,
 		p = 11
 	}
+
+	local sfletters = {'a','b','c','d','e','f','g','h'}
 	
-	local heldpiece = {x=-1,y=-1}
+	local heldpiece = {x=-1,y=-1,dx=-1,dy=-1}
+	local heldanim = 0
+	local heldanimto = 0
+	local heldcpiece
 	
 	local wobblesize = 0.1
 	
@@ -143,7 +149,7 @@
 				local cpiece = pstrtopnum[ board[x+1][y+1] ] 
 				if cpiece then
 					if x == heldpiece.x and y == heldpiece.y then
-						drawpiece(cpiece, padleft + size * x/8, padtop + size * (y + math.sin(GAMESTATE:GetSongTime()*1.5)*wobblesize)/8,0.5)
+						drawpiece(cpiece, padleft + size * x/8, padtop + size * (y + lerp(0, math.sin(GAMESTATE:GetSongTime()*1.5)*wobblesize, heldanim))/8, lerp(1, 0.5, heldanim))
 					else
 						drawpiece(cpiece, padleft + size * x/8, padtop + size * y/8)
 					end
@@ -154,8 +160,6 @@
 
 	local cursorx, cursory = 0, 0
 	local cursorxto, cursoryto = 0, 0
-	
-
 
 	-- squircle rendering code (oh god please help)
 	local corners = {{0, 0}, {1, 0}, {1, 1}, {0, 1}}
@@ -180,6 +184,18 @@
 		cursor:SetVertexPosition(i - 1, v.x, v.y, 0)
 	end
 	cursor:SetDrawMode('linestrip')
+	cursor:SetPolygonMode(1)
+
+	local circleq = 50
+	local circlesize = 0
+	local circlesizeto = 0
+	movespot:SetNumVertices(circleq)
+	for i = 1, circleq do
+		local a = i / (circleq - 1) * math.pi * 2
+		movespot:SetVertexPosition(i - 1, math.cos(a), math.sin(a), 0)
+	end
+	movespot:SetDrawMode('fan')
+	movespot:SetPolygonMode(0)
 
 	local function drawcursor(x, y)
 		cursor:xy(x, y)
@@ -187,9 +203,40 @@
 		cursor:zoom(size / 8)
 		cursor:SetLineWidth(3)
 		cursor:Draw()
-		if heldpiece.x ~= -1 and heldpiece.y ~= -1 then
-			local cpiece = pstrtopnum[ board[heldpiece.x+1][heldpiece.y+1] ] 
-			drawpiece(cpiece ,x, y + (math.sin(GAMESTATE:GetSongTime()*1.5)*(0-wobblesize))*80,0.5)
+		if heldanim > 0.1 then
+			drawpiece(heldcpiece, padleft + size * heldpiece.dx / 8, (padtop + size * heldpiece.dy / 8) + lerp(0, math.sin(GAMESTATE:GetSongTime()*1.5)*(0-wobblesize), heldanim)*80,0.5, (heldpiece.dx - lerp(heldpiece.dx, cursorxto, -0.01)) * 1000)
+		end
+	end
+
+	local movespotsCache = {}
+	local function drawMovespots()
+		if #movespotsCache == 0 then
+			for x = 0, 7 do
+				for y = 0, 7 do
+					local crdn = sfletters[heldpiece.x + 1] .. tostring(8 - heldpiece.y) .. sfletters[x + 1] .. tostring(8 - y)
+					-- this generates a move string that sunfish accepts (eg: a2a3)
+					local move = {parse(string.sub(crdn, 1, 2)), parse(string.sub(crdn, 3, 4))}
+					local valid = move[1] and move[2] and ttfind(pos:genMoves(), move)
+
+					if valid then
+						table.insert(movespotsCache, {x, y})
+					end
+				end
+			end
+		end
+
+		movespot:zoom(size / 8 / 6 * circlesize)
+		movespot:SetLineWidth(4)
+		for _, s in ipairs(movespotsCache) do
+			local cpiece = pstrtopnum[ board[s[1]+1][s[2]+1] ]
+			if cpiece then
+				movespot:diffuse(1, 0, 0, 0.5)
+			else
+				movespot:diffuse(1, 1, 1, 0.5)
+			end
+
+			movespot:xy(padleft + size * (s[1] + 0.5) / 8, padtop + size * (s[2] + 0.5) / 8)
+			movespot:Draw()
 		end
 	end
 	
@@ -199,18 +246,21 @@
 		lasttime = GAMESTATE:GetSongTime()
 
 		cursorx, cursory = lerp(cursorx, cursorxto, dt * 12), lerp(cursory, cursoryto, dt * 12)
+		circlesize = lerp(circlesize, circlesizeto, dt * 18)
+		heldanim = lerp(heldanim, heldanimto, dt * 10)
+		heldpiece.dx, heldpiece.dy = lerp(heldpiece.dx, cursorxto, dt * 6), lerp(heldpiece.dy, cursoryto, dt * 6)
 
 		drawboard()
 		drawpieces()
+		if heldanim > 0.1 or circlesize > 0.1 then
+			drawMovespots()
+		end
 		drawcursor(padleft + size * cursorx / 8, padtop + size * cursory / 8)
 		--for i=0,11 do
 			--drawpiece(i,i*50+50,SCREEN_HEIGHT/2+math.sin(i)*50)
 		--end
 	end)
-	
-	
-	local sfletters = {'a','b','c','d','e','f','g','h'}
-	
+
 	-- setup input
 	local dirbinds = {
 		Left = {-1, 0},
@@ -218,7 +268,7 @@
 		Up = {0, -1},
 		Right = {1, 0},
 	}
-	local holdtimer = 0.75 -- how many seconds does it take before a key tap becomes a long tap?
+	local holdtimer = 0.5 -- how many seconds does it take before a key tap becomes a long tap?
 	for _, v in ipairs({'Left', 'Down', 'Up', 'Right'}) do
 		local v = v
 		local d = dirbinds[v]
@@ -243,13 +293,19 @@
 				Trace('holding piece!')
 				
 				pressedAt = -1
-				if heldpiece.x == cursorxto and heldpiece.y == cursoryto then -- holding on already selected piece, unselect
-					heldpiece.x = -1
-					heldpiece.y = -1
-				elseif heldpiece.x == -1 and heldpiece.y == -1 and pstrtopnum[ board[cursorxto+1][cursoryto+1] ]  then -- no held piece, select current piece
+				if heldpiece.x == cursorxto and heldpiece.y == cursoryto and heldanimto == 1 then -- holding on already selected piece, unselect
+					circlesizeto = 0
+					heldanimto = 0
+				elseif heldanimto == 0 and pstrtopnum[ board[cursorxto+1][cursoryto+1] ]  then -- no held piece, select current piece
 					heldpiece.x = cursorxto
 					heldpiece.y = cursoryto
-				elseif heldpiece.x ~= -1 and heldpiece.y ~= -1  then-- selecting a different piece with an already held piece, try to move held piece to this spot!
+					heldpiece.dx = cursorxto
+					heldpiece.dy = cursoryto
+					circlesizeto = 1
+					heldanimto = 1
+					movespotsCache = {}
+					heldcpiece = pstrtopnum[ board[heldpiece.x+1][heldpiece.y+1] ]
+				elseif heldanimto == 1 then-- selecting a different piece with an already held piece, try to move held piece to this spot!
 					local crdn = sfletters[heldpiece.x + 1] .. tostring(8 - heldpiece.y) .. sfletters[cursorxto + 1] .. tostring(8 - cursoryto) 
 					-- this generates a move string that sunfish accepts (eg: a2a3)
 					local move = {parse(string.sub(crdn, 1, 2)), parse(string.sub(crdn, 3, 4))}
@@ -273,8 +329,8 @@
 						
 						board = boardtotable(pos.board)
 						
-						heldpiece.x = -1
-						heldpiece.y = -1
+						circlesizeto = 0
+						heldanimto = 0
 					else
 						print('this is NOT an ok move!!!')
 						badmovetimer = 100
@@ -316,6 +372,7 @@ Type = "ActorFrame"
 		<Layer File = 'chess.sprite' Name = "piece" />
 		<Layer File = 'board.sprite' Name = "boardtile" />
 		<Layer Type = "Polygon" Name = "cursor" />
+		<Layer Type = "Polygon" Name = "movespot" />
 	</children> </Layer>
 	<Layer Name = "badmovetext" Type="BitmapText" Font="_wendy small" Text=""/>
 </children></Mods>
