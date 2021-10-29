@@ -35,7 +35,7 @@
 	explosionx = 0
 	explosiony = 0
 	
-	emstrings = {'','Explosive','Molasses'}
+	emstrings = {'','Explosive','Molasses','Rulebreaker'}
 	
 	--set nearest neighbor for certain sprites
 	piecespr[2]:SetTextureFiltering(false)
@@ -77,6 +77,7 @@
 		'[[HYPERLINK BLOCKED]]',
 		'BRING ME HANK',
 		'UNINSTALL AVAST',
+		'NOT KAWAII',
 		'ASDFGHJKL;',
 		'START RUNNING',
 		'>:(',
@@ -483,7 +484,7 @@
 						local crdn = sfletters[heldpiece.x + 1] .. tostring(8 - heldpiece.y) .. sfletters[cursorxto + 1] .. tostring(8 - cursoryto) 
 						-- this generates a move string that sunfish accepts (eg: a2a3)
 						local move = {parse(string.sub(crdn, 1, 2)), parse(string.sub(crdn, 3, 4))}
-						if move[1] and move[2] and ttfind(pos:genMoves(), move) then
+						if move[1] and move[2] and (ttfind(pos:genMoves(), move) or extramod == 3) then
 
 							print('this is an ok move')
 							pos = pos:move(move)
