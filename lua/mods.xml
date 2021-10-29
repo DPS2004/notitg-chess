@@ -210,6 +210,9 @@
 
 	local cursorx, cursory = 3, 6
 	local cursorxto, cursoryto = 3, 6
+	local cursorzoom, cursorzoomto = 1, 1
+	local cursorholdstart = -1
+	local holdtimer = 0.5 -- how many seconds does it take before a key tap becomes a long tap?
 
 	-- squircle rendering code (oh god please help)
 	local corners = {{0, 0}, {1, 0}, {1, 1}, {0, 1}}
@@ -248,9 +251,16 @@
 	movespot:SetPolygonMode(0)
 
 	local function drawcursor(x, y)
-		cursor:xy(x, y)
-		cursor:diffuse(129/255, 241/255, 245/255, 1)
-		cursor:zoom(size / 8)
+		local bri = math.sin(GAMESTATE:GetSongTime() * 3) * 0.05 - 0.1
+		cursor:diffuse(129/255 + bri, 241/255 + bri, 245/255 + bri, 1)
+		if cursorholdstart ~= -1 then
+			cursorzoomto = 1 - ((GAMESTATE:GetSongTime() - cursorholdstart) / holdtimer) * 0.25
+		else
+			cursorzoomto = 1
+		end
+		cursor:zoom(size / 8 * cursorzoom)
+		local zoomoffset = (1 - cursorzoom) * size / 8 / 2
+		cursor:xy(x + zoomoffset, y + zoomoffset)
 		cursor:SetLineWidth(3)
 		cursor:Draw()
 		if heldanim > 0.1 then
@@ -298,6 +308,7 @@
 		lasttime = GAMESTATE:GetSongTime()
 		if gamestate == 1 then
 			cursorx, cursory = lerp(cursorx, cursorxto, dt * 12), lerp(cursory, cursoryto, dt * 12)
+			cursorzoom = lerp(cursorzoom, cursorzoomto, dt * 17)
 			circlesize = lerp(circlesize, circlesizeto, dt * 18)
 			heldanim = lerp(heldanim, heldanimto, dt * 10)
 			heldpiece.dx, heldpiece.dy = lerp(heldpiece.dx, cursorxto, dt * 6), lerp(heldpiece.dy, cursoryto, dt * 6)
@@ -328,7 +339,6 @@
 		Up = {0, -1},
 		Right = {1, 0},
 	}
-	local holdtimer = 0.5 -- how many seconds does it take before a key tap becomes a long tap?
 	for _, v in ipairs({'Left', 'Down', 'Up', 'Right'}) do
 		local v = v
 		local d = dirbinds[v]
@@ -336,6 +346,7 @@
 		local pressedAt = -1
 		self:addcommand('StepP' .. 1 .. v .. 'Press' .. 'Message', function()
 			pressedAt = GAMESTATE:GetSongTime()
+			cursorholdstart = pressedAt
 			if gamestate == 0 then
 				sprselection = clamp(sprselection + d[1], 1, #sproptions)
 				skintext:settext(sproptions[sprselection])
@@ -357,6 +368,7 @@
 					cursorxto, cursoryto = clamp(cursorxto + d[1], 0, 7), clamp(cursoryto + d[2], 0, 7)
 				end
 				pressedAt = -1
+				cursorholdstart = -1
 			end
 		end)
 
@@ -368,6 +380,7 @@
 					Trace('holding piece!')
 					
 					pressedAt = -1
+					cursorholdstart = -1
 					if heldpiece.x == cursorxto and heldpiece.y == cursoryto and heldanimto == 1 then -- holding on already selected piece, unselect
 						circlesizeto = 0
 						heldanimto = 0
