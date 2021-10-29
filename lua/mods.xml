@@ -129,6 +129,39 @@
 	printboard(pos.board)
 	board = boardtotable(pos.board) --only call this when board needs to be updated
 	
+	-- background stuff
+	for _,v in ipairs(bg) do
+		for _,a in ipairs(v) do
+			a:scaletocover(0, 0, sw, sh)
+			a:hidden(1)
+		end
+	end
+	bg_bottom:scaletocover(0, 0, sw, sh)
+
+	local hasDoneTransition = false
+
+	func {0, 9e9, function()
+		local t = GAMESTATE:GetSongTime()
+		for i1, v in ipairs(bg) do
+			for i2, a in ipairs(v) do
+				local transition = (1.9 - t) / 1.9
+				if hasDoneTransition then transition = 0 end
+				if transition <= 0 then
+					hasDoneTransition = true
+					transition = 0
+				end
+
+				local offset = math.sin(t * 0.6 * (1 + i1/9) + i1 + i1/2) * sh * 0.03 + sh * inQuad(transition) * ((i2 + 1) % 2 * 2 - 1)
+
+				a:scaletocover(0, offset, sw, sh + offset)
+				a:hidden(0)
+			end
+		end
+	end}
+
+	dropshadow:xy(scx, scy)
+	dropshadow:zoomto(size * 1.35, size * 1.35)
+
 	--set sprite layers to not animate
 	
 	
@@ -575,6 +608,15 @@ Type = "ActorFrame"
 	<Layer Type = "ActorProxy" Name = "PJ[1]" />
 	<Layer Type = "ActorProxy" Name = "PJ[2]" />
 
+	<Layer File = "bg_l4" Name="bg_bottom"/>
+	<Layer File = "bg_l3_top" Name="bg[3][1]"/>
+	<Layer File = "bg_l3_bot" Name="bg[3][2]"/>
+	<Layer File = "bg_l2_top" Name="bg[2][1]"/>
+	<Layer File = "bg_l2_bot" Name="bg[2][2]"/>
+	<Layer File = "bg_l1_top" Name="bg[1][1]"/>
+	<Layer File = "bg_l1_bot" Name="bg[1][2]"/>
+
+	<Layer File = "dropshadow" Name="dropshadow"/>
 	
 	<Layer Type = "ActorFrame" Name = "chess"> <children>
 		<Layer File = 'wiki.sprite' Name = "piecespr[1]" />
