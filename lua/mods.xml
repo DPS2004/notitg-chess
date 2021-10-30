@@ -135,6 +135,7 @@
 		NODES_SEARCHED = 1e4
 	end
 	print('difficulty '.. difficulty)
+	print(NODES_SEARCHED)
 	
 	--load chess engine
 	local songName = GAMESTATE:GetCurrentSong():GetSongDir();
@@ -570,9 +571,11 @@
 									
 									if score <= -MATE_VALUE then
 										print('You won')
+										die()
 									end
 									if score >= MATE_VALUE then
 										print('You lost')
+										die()
 									end
 									
 									assert(move)
