@@ -102,6 +102,26 @@
 	local padtop = scy - size/2
 
 	print(padtop)
+
+	local deathtime = -1
+	local function die()
+		deathtime = GAMESTATE:GetSongTime()
+	end
+
+	local wait = 0.1 -- for impact
+	local function drop(x, y, seed)
+		local t = GAMESTATE:GetSongTime() - deathtime
+		if deathtime == -1 or t < wait then return 0, 0, 0, 0, 0 end
+		if t > 2 then return 0, sh, 0, 0, 0 end
+		t = t - wait
+		math.randomseed(x * 420.69 + y * 955.345 + seed * 2)
+		local duration = math.random() * 0.2 + 0.9
+		return  lerp(0, math.random(size / 8 * 0.25, size / 8 * 1.5) * (math.random(0, 1) * 2 - 1), outQuad(t * duration)), -- x
+					  lerp(0, size * 1.2, inCirc(t * duration)),                                                                  -- y
+					  lerp(0, math.random(-50, 50), inQuad(t * duration)),                                                        -- rx
+					  lerp(0, math.random(-50, 50), inQuad(t * duration)),                                                        -- ry
+					  lerp(0, math.random(-50, 50), outQuad(t * duration))                                                        -- rz
+	end
 	
 	--set chess engine difficulty
 	local difficulty = GAMESTATE:GetCurrentSteps(0):GetDifficulty()
@@ -178,9 +198,12 @@
 	local renderingpiece = 1
 	local function drawpiece(p,x,y,o,r)
 		o = o or 1
-		piece:x(x + 0.5 * size/8)
-		piece:y(y + 0.5 * size/8)
-		piece:rotationz(r or 0)
+		local ox, oy, orx, ory, orz = drop(x, y, 1)
+		piece:x(x + 0.5 * size/8 + ox)
+		piece:y(y + 0.5 * size/8 + oy)
+		piece:rotationz(r or 0 + orz)
+		piece:rotationx(orx)
+		piece:rotationy(ory)
 		if renderingpiece ~= 8 then
 			piece:setstate(p)
 		else
@@ -218,8 +241,12 @@
 		piece:Draw()
 	end
 	local function drawtile(p,x,y)
-		boardtile:x(x)
-		boardtile:y(y)
+		local ox, oy, orx, ory, orz = drop(x, y, 2)
+		boardtile:x(x + ox)
+		boardtile:y(y + oy)
+		boardtile:rotationz(orz)
+		boardtile:rotationy(ory)
+		boardtile:rotationx(orx)
 		
 		boardtile:setstate(p)
 		boardtile:Draw()
@@ -229,7 +256,6 @@
 		by = by or 0
 		for x=0,7 do
 			for y=0,7 do
-				-- in the case of a non 4:3 aspect ratio, scaley is usually smaller.
 				drawtile((x + y) % 2, padleft + size * x/8, padtop + size * y/8)
 			end
 		end
@@ -501,6 +527,7 @@
 						circlesizeto = 0
 						heldanimto = 0
 					elseif heldanimto == 0 and pstrtopnum[ board[cursorxto+1][cursoryto+1] ]  then -- no held piece, select current piece
+						die()
 						heldpiece.x = cursorxto
 						heldpiece.y = cursoryto
 						heldpiece.dx = cursorxto
