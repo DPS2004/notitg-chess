@@ -1,0 +1,10 @@
+TODO:
+
+Fix player ease visual bug
+add post die() win/lose screen, send player to end of file
+i'm not exactly sure why, but difficulty doesnt seem to be getting set properly.
+maybe more skins/ extra modifiers?
+make music loop
+change size of explosion
+make AI's captures also explode
+let player play as black, probably through an extra modifier accessed via down key
