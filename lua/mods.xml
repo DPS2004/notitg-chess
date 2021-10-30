@@ -527,7 +527,6 @@
 						circlesizeto = 0
 						heldanimto = 0
 					elseif heldanimto == 0 and pstrtopnum[ board[cursorxto+1][cursoryto+1] ]  then -- no held piece, select current piece
-						die()
 						heldpiece.x = cursorxto
 						heldpiece.y = cursoryto
 						heldpiece.dx = cursorxto
