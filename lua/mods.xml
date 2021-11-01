@@ -161,11 +161,16 @@
 
 	local hasDoneTransition = false
 
-	func {0, 9e9, function()
+	local earliest
+
+	local function drawBG()
 		local t = GAMESTATE:GetSongTime()
-		for i1, v in ipairs(bg) do
+		if not earliest then earliest = t end
+		bg_bottom:Draw()
+		for i1 = #bg, 1, -1 do
+			local v = bg[i1]
 			for i2, a in ipairs(v) do
-				local transition = (1.9 - t) / 1.9
+				local transition = (1.9 - (t - earliest)) / 1.9
 				if hasDoneTransition then transition = 0 end
 				if transition <= 0 then
 					hasDoneTransition = true
@@ -176,9 +181,12 @@
 
 				a:scaletocover(0, offset, sw, sh + offset)
 				a:hidden(0)
+				a:Draw()
 			end
 		end
-	end}
+	end
+
+	background:SetDrawFunction(drawBG)
 
 	dropshadow:xy(scx, scy)
 	dropshadow:zoomto(size * 1.35, size * 1.35)
@@ -637,13 +645,15 @@ Type = "ActorFrame"
 	<Layer Type = "ActorProxy" Name = "PJ[1]" />
 	<Layer Type = "ActorProxy" Name = "PJ[2]" />
 
-	<Layer File = "bg_l4" Name="bg_bottom"/>
-	<Layer File = "bg_l3_top" Name="bg[3][1]"/>
-	<Layer File = "bg_l3_bot" Name="bg[3][2]"/>
-	<Layer File = "bg_l2_top" Name="bg[2][1]"/>
-	<Layer File = "bg_l2_bot" Name="bg[2][2]"/>
-	<Layer File = "bg_l1_top" Name="bg[1][1]"/>
-	<Layer File = "bg_l1_bot" Name="bg[1][2]"/>
+	<Layer Type = "ActorFrame" Name = "background"><children>
+		<Layer File = "bg_l4" Name="bg_bottom"/>
+		<Layer File = "bg_l3_top" Name="bg[3][1]"/>
+		<Layer File = "bg_l3_bot" Name="bg[3][2]"/>
+		<Layer File = "bg_l2_top" Name="bg[2][1]"/>
+		<Layer File = "bg_l2_bot" Name="bg[2][2]"/>
+		<Layer File = "bg_l1_top" Name="bg[1][1]"/>
+		<Layer File = "bg_l1_bot" Name="bg[1][2]"/>
+	</children></Layer>
 
 	<Layer File = "dropshadow" Name="dropshadow"/>
 	
