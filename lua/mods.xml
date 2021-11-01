@@ -258,6 +258,7 @@
 			piece:cropbottom(cropv/2)
 			piece:cropleft(croph/2)
 			piece:cropright(croph/2)
+			piece:rotationz(-r or 0 - orz) -- .. .wh.w.y w???? ?WH?Wy why WHY IS THE ROTATION . okay
 			if p == 6 or p == 0 then
 				analys:x(x + 0.5 * size/8)
 				analys:y(y + 0.5 * size/8)
@@ -467,10 +468,14 @@
 	local sproptions = {'wiki','pico','boring','plastic','dunno','geometric','fantasy','aft'}
 	local sprselection = 1
 	local sprselectionanim = 1
-	local lasttime = 0
+	local lasttime = GAMESTATE:GetSongTime()
+	local previewtime = 0
 	chess:SetDrawFunction(function(self)
 		local dt = GAMESTATE:GetSongTime() - lasttime
 		lasttime = GAMESTATE:GetSongTime()
+		if GAMESTATE:GetSongBeat() > 0.01 then
+			previewtime = previewtime + dt
+		end
 		if gamestate == 1 then
 			cursorx, cursory = lerp(cursorx, cursorxto, dt * 12), lerp(cursory, cursoryto, dt * 12)
 			cursorzoom = lerp(cursorzoom, cursorzoomto, dt * 17)
@@ -491,11 +496,19 @@
 			--drawpiece(i,i*50+50,SCREEN_HEIGHT/2+math.sin(i)*50)
 		--end
 		if gamestate == 0 then
+			local e = inOutExpo(previewtime % 1)
+			local p = math.floor(previewtime)
 			sprselectionanim = lerp(sprselectionanim, sprselection, dt * 19)
 			for i,v in ipairs(sproptions) do
 				renderingpiece = i
 				piece = piecespr[i]
-				drawpiece(3,(i-sprselectionanim+3.11)*size*0.2,SCREEN_HEIGHT/2)
+
+				local piece = (sprselection == i) and ((p + 3) % 12) or 2
+				local alpha = (sprselection == i) and e or 1
+				local rotation = (sprselection == i) and e * 360 or 0
+
+				drawpiece(clamp(piece, 0, 12), (i-sprselectionanim+3.11)*size*0.2,SCREEN_HEIGHT/2, 1 - alpha, rotation)
+				drawpiece(clamp((piece + 1) % 12, 0, 12),(i-sprselectionanim+3.11)*size*0.2,SCREEN_HEIGHT/2, alpha, rotation)
 			end
 		end
 		if explosiontimer > 0 then
@@ -525,6 +538,7 @@
 				if gamestate == 0 then
 					sprselection = clamp(sprselection + d[1], 1, #sproptions)
 					skintext:settext(sproptions[sprselection])
+					previewtime = 0
 					if d[2] == 1 then
 						extramod = (extramod + 1) % #emstrings
 						emtext:settext(emstrings[extramod+1])
