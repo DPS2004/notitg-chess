@@ -14,9 +14,11 @@
 	for pn = 1, #PP do
 		PP[pn]:SetTarget(P[pn])
 		P[pn]:hidden(1)
+		PP[pn]:xy(0, 0)
+		P[pn]:xy(scx, scy)
 	end
 	-- your code goes here here:
-	
+	--[[
 	setdefault { 
 		200, 'tiny0',
 		200,'tiny1',
@@ -24,9 +26,26 @@
 		128,'x',
 		64,'y'
 	}
+	]]
+	ease {0, 0.01, inOutCirc,
+		200, 'tiny0',
+		200,'tiny1',
+		200,'tiny3',
+		-50, 'movex',
+		200, 'movey1', -- as a hint towards down menu
+		100, 'movex1',
+		64,'y'
+	}
 	P[2]:hidden(1)
+	local playerhiddento = 0
+	local playerhidden = 0
 	gamestate = 0
 	extramod = 0
+	local startedGameAt = -1
+
+	func {0, 9e9, function(beat, poptions)
+		poptions[1].tiny = playerhidden * 200
+	end}
 	
 	movespeed = 0.1
 	movelength = 100
@@ -182,6 +201,9 @@
 				a:scaletocover(0, offset, sw, sh + offset)
 				a:hidden(0)
 				a:Draw()
+
+				chess:y(inExpo(transition) * -sh)
+				skintext:y2(inExpo(transition) * sh)
 			end
 		end
 	end
@@ -213,6 +235,13 @@
 		piece:rotationz(r or 0 + orz)
 		piece:rotationx(orx)
 		piece:rotationy(ory)
+		-- this is jank and sucks
+		local t = GAMESTATE:GetSongTime() - startedGameAt
+		t = t * 2.5 - ((x - padleft) / size + (y - padtop) / size) / 2
+		t = clamp(t, 0, 1)
+		local zoom = outCirc(t)
+		if gamestate == 0 then zoom = 1.5 end
+		piece:zoomto(size / 8 * zoom, size / 8 * zoom)
 		if renderingpiece ~= 8 then
 			piece:setstate(p)
 		else
@@ -224,7 +253,7 @@
 			local croph = 1 - size / sw
 			local cropv = 1 - size / sh
 
-			piece:zoomto(size / 8 * (1 / (1 - croph)), -size / 8 * (1 / (1 - cropv)))
+			piece:zoomto(size / 8 * (1 / (1 - croph)) * zoom, -size / 8 * (1 / (1 - cropv)) * zoom)
 			piece:croptop(cropv/2)
 			piece:cropbottom(cropv/2)
 			piece:cropleft(croph/2)
@@ -235,7 +264,7 @@
 				analys:rotationz(r or 0)
 				if p == 6 then analys:diffuse(0.5, 0.5, 0.5, 1) else analys:diffuse(1, 1, 1, 1) end
 				analys:diffusealpha(o)
-				analys:zoomto(size / 8, size / 8)
+				analys:zoomto(size / 8 * zoom, size / 8 * zoom)
 				analys:Draw()
 				return
 			elseif p > 5 then
@@ -256,6 +285,8 @@
 		boardtile:rotationz(orz)
 		boardtile:rotationy(ory)
 		boardtile:rotationx(orx)
+		boardtile:diffusealpha(playerhidden)
+		dropshadow:diffusealpha(playerhidden)
 		
 		boardtile:setstate(p)
 		boardtile:Draw()
@@ -435,6 +466,7 @@
 	
 	local sproptions = {'wiki','pico','boring','plastic','dunno','geometric','fantasy','aft'}
 	local sprselection = 1
+	local sprselectionanim = 1
 	local lasttime = 0
 	chess:SetDrawFunction(function(self)
 		local dt = GAMESTATE:GetSongTime() - lasttime
@@ -444,6 +476,7 @@
 			cursorzoom = lerp(cursorzoom, cursorzoomto, dt * 17)
 			circlesize = lerp(circlesize, circlesizeto, dt * 18)
 			heldanim = lerp(heldanim, heldanimto, dt * 10)
+			playerhidden = lerp(playerhidden, playerhiddento, dt * 8)
 			heldpiece.dx, heldpiece.dy = lerp(heldpiece.dx, cursorxto, dt * 6), lerp(heldpiece.dy, cursoryto, dt * 6)
 		end
 		drawboard()
@@ -458,10 +491,11 @@
 			--drawpiece(i,i*50+50,SCREEN_HEIGHT/2+math.sin(i)*50)
 		--end
 		if gamestate == 0 then
+			sprselectionanim = lerp(sprselectionanim, sprselection, dt * 19)
 			for i,v in ipairs(sproptions) do
 				renderingpiece = i
 				piece = piecespr[i]
-				drawpiece(3,(i-sprselection+3.11)*size*0.2,SCREEN_HEIGHT/2)
+				drawpiece(3,(i-sprselectionanim+3.11)*size*0.2,SCREEN_HEIGHT/2)
 			end
 		end
 		if explosiontimer > 0 then
@@ -473,160 +507,165 @@
 	end)
 
 	-- setup input
-	local dirbinds = {
-		Left = {-1, 0},
-		Down = {0, 1},
-		Up = {0, -1},
-		Right = {1, 0},
-	}
-	for _, v in ipairs({'Left', 'Down', 'Up', 'Right'}) do
-		local v = v
-		local d = dirbinds[v]
-		Trace(v)
-		local pressedAt = -1
-		self:addcommand('StepP' .. 1 .. v .. 'Press' .. 'Message', function()
-			pressedAt = GAMESTATE:GetSongTime()
-			cursorholdstart = pressedAt
-			if gamestate == 0 then
-				sprselection = clamp(sprselection + d[1], 1, #sproptions)
-				skintext:settext(sproptions[sprselection])
-				if d[2] == 1 then
-					extramod = (extramod + 1) % #emstrings
-					emtext:settext(emstrings[extramod+1])
-				end
-				if d[2] == -1 then
-					gamestate = 1
-					renderingpiece = sprselection
-					piece = piecespr[sprselection]
-					skintext:settext('')
-					emtext:settext('')
-					PP[1]:hidden(1)
-					initpiecespr()
-					
-					if extramod == 2 then -- molasses mode
-						movespeed = 0.005
-						movelength = 1500
+	func {0.01, function()
+		local dirbinds = {
+			Left = {-1, 0},
+			Down = {0, 1},
+			Up = {0, -1},
+			Right = {1, 0},
+		}
+		for _, v in ipairs({'Left', 'Down', 'Up', 'Right'}) do
+			local v = v
+			local d = dirbinds[v]
+			Trace(v)
+			local pressedAt = -1
+			self:addcommand('StepP' .. 1 .. v .. 'Press' .. 'Message', function()
+				pressedAt = GAMESTATE:GetSongTime()
+				cursorholdstart = pressedAt
+				if gamestate == 0 then
+					sprselection = clamp(sprselection + d[1], 1, #sproptions)
+					skintext:settext(sproptions[sprselection])
+					if d[2] == 1 then
+						extramod = (extramod + 1) % #emstrings
+						emtext:settext(emstrings[extramod+1])
+					end
+					if d[2] == -1 then
+						gamestate = 1
+						renderingpiece = sprselection
+						piece = piecespr[sprselection]
+						skintext:settext('')
+						emtext:settext('')
+						playerhiddento = 1
+						startedGameAt = GAMESTATE:GetSongTime()
+						initpiecespr()
+						
+						if extramod == 2 then -- molasses mode
+							movespeed = 0.005
+							movelength = 1500
+						end
 					end
 				end
-			end
-		end)
-		self:addcommand('StepP' .. 1 .. v .. 'Lift' .. 'Message', function()
-			local dt = GAMESTATE:GetSongTime() - pressedAt
-
-			if dt < holdtimer then
-				if gamestate == 1 then
-					Trace('moved cursor ' .. v .. '!')
-					cursorxto, cursoryto = clamp(cursorxto + d[1], 0, 7), clamp(cursoryto + d[2], 0, 7)
-				end
-				pressedAt = -1
-				cursorholdstart = -1
-			end
-		end)
-
-		func {0, 9e9, function()
-			if gamestate == 1 then	
-				if pressedAt == -1 then return end
+			end)
+			self:addcommand('StepP' .. 1 .. v .. 'Lift' .. 'Message', function()
 				local dt = GAMESTATE:GetSongTime() - pressedAt
-				if dt >= holdtimer then
-					Trace('holding piece!')
-					
+
+				if dt < holdtimer then
+					if gamestate == 1 then
+						Trace('moved cursor ' .. v .. '!')
+						cursorxto, cursoryto = clamp(cursorxto + d[1], 0, 7), clamp(cursoryto + d[2], 0, 7)
+					end
 					pressedAt = -1
 					cursorholdstart = -1
-					if heldpiece.x == cursorxto and heldpiece.y == cursoryto and heldanimto == 1 then -- holding on already selected piece, unselect
-						circlesizeto = 0
-						heldanimto = 0
-					elseif heldanimto == 0 and pstrtopnum[ board[cursorxto+1][cursoryto+1] ]  then -- no held piece, select current piece
-						heldpiece.x = cursorxto
-						heldpiece.y = cursoryto
-						heldpiece.dx = cursorxto
-						heldpiece.dy = cursoryto
-						circlesizeto = 1
-						heldanimto = 1
-						movespotsCache = {}
-						heldcpiece = pstrtopnum[ board[heldpiece.x+1][heldpiece.y+1] ]
-					elseif heldanimto == 1 then-- selecting a different piece with an already held piece, try to move held piece to this spot!
-						local capturing = false
-						if pstrtopnum[ board[cursorxto+1][cursoryto+1] ] then
-							capturing = true
-						end
-						local crdn = sfletters[heldpiece.x + 1] .. tostring(8 - heldpiece.y) .. sfletters[cursorxto + 1] .. tostring(8 - cursoryto) 
-						-- this generates a move string that sunfish accepts (eg: a2a3)
-						local move = {parse(string.sub(crdn, 1, 2)), parse(string.sub(crdn, 3, 4))}
-						if move[1] and move[2] and (ttfind(pos:genMoves(), move) or extramod == 3) then
-
-							print('this is an ok move')
-							pos = pos:move(move)
-							
-							if capturing and extramod == 1 then
-								print('kaboom')
-								explosiontimer = 1.44
-								explosionx = cursorxto
-								explosiony = cursoryto
-								sound('deltarune-explosion')
-								explosionspr:setstate(0)
-							end
-							
-							table.insert(easedpieces,{
-								x= move[2]%10 - 1, y= math.floor(move[2]/10) - 2, 
-								cx= move[1]%10 - 1, cy= math.floor(move[1]/10) - 2,
-								t = 0,
-								capturing = capturing,
-								p = pstrtopnum[ board[move[1]%10][math.floor(move[1]/10)-1] ],
-								finish = function()
-									--board = boardtotable(pos.board)
-									local move, score = search(pos)
-									assert(score)
-									
-									if score <= -MATE_VALUE then
-										print('You won')
-										die()
-									end
-									if score >= MATE_VALUE then
-										print('You lost')
-										die()
-									end
-									
-									assert(move)
-									
-									pos = pos:move(move)
-									
-									table.insert(easedpieces,{
-										x= 7-(move[2]%10 - 1), y= 7-(math.floor(move[2]/10) - 2), 
-										cx= 7-(move[1]%10 - 1), cy= 7-(math.floor(move[1]/10) - 2),
-										t = 0,
-										p = pstrtopnum[ board[8-(move[1]%10 - 1)][8-(math.floor(move[1]/10) - 2)] ]
-									})
-
-									
-									board = boardtotable(pos.board)
-									
-									circlesizeto = 0
-									heldanimto = 0
-								end
-							})
-							heldpiece.x = -1
-							heldpiece.y = -1
-							heldanimto = 0
-							
-							
-						else
-							print('this is NOT an ok move!!!')
-							badmovetimer = 100
-							if firstbadmove then
-								badmovetext:settext('ILLEGAL MOVE')
-								firstbadmove = false
-							else
-								badmovetext:settext(youfuckedup[math.random(1,#youfuckedup)])
-							end
-						end
-					end
-					print(heldpiece.x)
-					print(heldpiece.y)
 				end
-			end
-		end}
-		
-	end
+			end)
+
+			func {0.01, 9e9, function()
+				if gamestate == 1 then	
+					if pressedAt == -1 then return end
+					local dt = GAMESTATE:GetSongTime() - pressedAt
+					if dt >= holdtimer then
+						Trace('holding piece!')
+						
+						pressedAt = -1
+						cursorholdstart = -1
+						if heldpiece.x == cursorxto and heldpiece.y == cursoryto and heldanimto == 1 then -- holding on already selected piece, unselect
+							circlesizeto = 0
+							heldanimto = 0
+						elseif heldanimto == 0 and pstrtopnum[ board[cursorxto+1][cursoryto+1] ]  then -- no held piece, select current piece
+							heldpiece.x = cursorxto
+							heldpiece.y = cursoryto
+							heldpiece.dx = cursorxto
+							heldpiece.dy = cursoryto
+							circlesizeto = 1
+							heldanimto = 1
+							movespotsCache = {}
+							heldcpiece = pstrtopnum[ board[heldpiece.x+1][heldpiece.y+1] ]
+						elseif heldanimto == 1 then-- selecting a different piece with an already held piece, try to move held piece to this spot!
+							local capturing = false
+							if pstrtopnum[ board[cursorxto+1][cursoryto+1] ] then
+								capturing = true
+							end
+							local crdn = sfletters[heldpiece.x + 1] .. tostring(8 - heldpiece.y) .. sfletters[cursorxto + 1] .. tostring(8 - cursoryto) 
+							-- this generates a move string that sunfish accepts (eg: a2a3)
+							local move = {parse(string.sub(crdn, 1, 2)), parse(string.sub(crdn, 3, 4))}
+							if move[1] and move[2] and (ttfind(pos:genMoves(), move) or extramod == 3) then
+
+								print('this is an ok move')
+								pos = pos:move(move)
+								
+								if capturing and extramod == 1 then
+									print('kaboom')
+									explosiontimer = 1.44
+									explosionx = cursorxto
+									explosiony = cursoryto
+									sound('deltarune-explosion')
+									explosionspr:setstate(0)
+								end
+								
+								table.insert(easedpieces,{
+									x= move[2]%10 - 1, y= math.floor(move[2]/10) - 2, 
+									cx= move[1]%10 - 1, cy= math.floor(move[1]/10) - 2,
+									t = 0,
+									capturing = capturing,
+									p = pstrtopnum[ board[move[1]%10][math.floor(move[1]/10)-1] ],
+									finish = function()
+										--board = boardtotable(pos.board)
+										local move, score = search(pos)
+										assert(score)
+										
+										if score <= -MATE_VALUE then
+											print('You won')
+											die()
+											return
+										end
+										if score >= MATE_VALUE then
+											print('You lost')
+											die()
+											return
+										end
+										
+										assert(move)
+										
+										pos = pos:move(move)
+										
+										table.insert(easedpieces,{
+											x= 7-(move[2]%10 - 1), y= 7-(math.floor(move[2]/10) - 2), 
+											cx= 7-(move[1]%10 - 1), cy= 7-(math.floor(move[1]/10) - 2),
+											t = 0,
+											p = pstrtopnum[ board[8-(move[1]%10 - 1)][8-(math.floor(move[1]/10) - 2)] ]
+										})
+
+										
+										board = boardtotable(pos.board)
+										
+										circlesizeto = 0
+										heldanimto = 0
+									end
+								})
+								heldpiece.x = -1
+								heldpiece.y = -1
+								heldanimto = 0
+								
+								
+							else
+								print('this is NOT an ok move!!!')
+								badmovetimer = 100
+								if firstbadmove then
+									badmovetext:settext('ILLEGAL MOVE')
+									firstbadmove = false
+								else
+									badmovetext:settext(youfuckedup[math.random(1,#youfuckedup)])
+								end
+							end
+						end
+						print(heldpiece.x)
+						print(heldpiece.y)
+					end
+				end
+			end}
+			
+		end
+	end}
 	func {0, 9e9, function() 
 		if badmovetimer > 0 then
 			badmovetimer = badmovetimer - 1
