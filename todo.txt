@@ -6,7 +6,6 @@ maybe more skins/ extra modifiers?
 make music loop
 change size of explosion
 make AI's captures also explode
-let player play as black, probably through an extra modifier accessed via down key
 sound effects??
 
 
