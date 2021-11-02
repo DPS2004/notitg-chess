@@ -55,7 +55,7 @@
 	explosionx = 0
 	explosiony = 0
 	
-	emstrings = {'','Explosive','Molasses','Rulebreaker','Instawin','Instalose'}
+	emstrings = {'','Explosive','Molasses','Rulebreaker','Instawin','Instalose','Play as Black', 'Out to lunch'}
 	
 	--set nearest neighbor for certain sprites
 	piecespr[2]:SetTextureFiltering(false)
@@ -263,6 +263,11 @@
 	local function drawpiece(p,x,y,o,r)
 		o = o or 1
 		r = r or 0
+		
+		if extramod == 6 then
+			p = (p + 6)%12
+		end
+		
 		local ox, oy, orx, ory, orz = drop(x, y, 1)
 		piece:x(x + 0.5 * size/8 + ox)
 		piece:y(y + 0.5 * size/8 + oy)
@@ -603,7 +608,28 @@
 							printboard(pos.board)
 							board = boardtotable(pos.board)
 						end
-						
+						if extramod == 6 then --play as black
+							pos = Position.new(initial_playasblack, 0, {true,true}, {true,true}, 0, 0)
+							printboard(pos.board)
+							board = boardtotable(pos.board)
+							
+							--white move
+							local move, score = search(pos)
+							assert(score)						
+							assert(move)
+							pos = pos:move(move)
+							table.insert(easedpieces,{
+								x= 7-(move[2]%10 - 1), y= 7-(math.floor(move[2]/10) - 2), 
+								cx= 7-(move[1]%10 - 1), cy= 7-(math.floor(move[1]/10) - 2),
+								t = 0,
+								p = pstrtopnum[ board[8-(move[1]%10 - 1)][8-(math.floor(move[1]/10) - 2)] ]
+							})
+							board = boardtotable(pos.board)
+
+							circlesizeto = 0
+							heldanimto = 0
+							
+						end
 					end
 				end
 			end)
