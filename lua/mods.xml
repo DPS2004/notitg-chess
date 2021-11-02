@@ -55,7 +55,7 @@
 	explosionx = 0
 	explosiony = 0
 	
-	emstrings = {'','Explosive','Molasses','Rulebreaker'}
+	emstrings = {'','Explosive','Molasses','Rulebreaker','Instawin','Instalose'}
 	
 	--set nearest neighbor for certain sprites
 	piecespr[2]:SetTextureFiltering(false)
@@ -73,6 +73,9 @@
 	
 	badmovetext:x(SCREEN_WIDTH/2)
 	badmovetext:y(SCREEN_HEIGHT/2)
+	
+	endtext:x(SCREEN_WIDTH/2)
+	endtext:y(SCREEN_HEIGHT/2)
 	
 	explosionspr:x(SCREEN_WIDTH/2)
 	explosionspr:y(SCREEN_HEIGHT/2)
@@ -102,6 +105,35 @@
 		'START RUNNING',
 		'>:(',
 	}
+	wintext = {
+		'CONGRATULATIONS!',
+		'YOU\'RE WINNER!',
+		'VICTORY!',
+		'CHECKMATE!',
+		'GGWP',
+		'A WINNER IS YOU!',
+		'NICE ONE!',
+		'CHESSMATE!',
+		'WOW!',
+		'GOOD JOB!',
+		'CHESS CERTIFIED!',
+		'BRAVO!'
+	}
+	
+	losetext = {
+		'YOU LOSE!',
+		'GGEZ',
+		'TRY HARDER!',
+		'BIG OOF!',
+		'GIT GUD!',
+		'GAME OVER',
+		'TRY AGAIN!',
+		'YIKES!',
+		'CRY ABOUT IT'
+	}
+		
+		
+		
 	
 	function sound(str)
 		local dir = GAMESTATE:GetCurrentSong():GetSongDir();
@@ -560,6 +592,18 @@
 							movespeed = 0.005
 							movelength = 1500
 						end
+						
+						if extramod == 4 then -- instawin
+							pos = Position.new(initial_instawin, 0, {true,true}, {true,true}, 0, 0)
+							printboard(pos.board)
+							board = boardtotable(pos.board)
+						end
+						if extramod == 5 then -- instalose
+							pos = Position.new(initial_instalose, 0, {true,true}, {true,true}, 0, 0)
+							printboard(pos.board)
+							board = boardtotable(pos.board)
+						end
+						
 					end
 				end
 			end)
@@ -632,11 +676,13 @@
 										
 										if score <= -MATE_VALUE then
 											print('You won')
+											endtext:settext(wintext[math.random(1,#wintext)])
 											die()
 											return
 										end
 										if score >= MATE_VALUE then
 											print('You lost')
+											endtext:settext(losetext[math.random(1,#losetext)])
 											die()
 											return
 										end
@@ -712,7 +758,7 @@ Type = "ActorFrame"
 	</children></Layer>
 
 	<Layer File = "dropshadow" Name="dropshadow"/>
-	
+	<Layer Name = "endtext" Type="BitmapText" Font="_wendy small" Text=""/>
 	<Layer Type = "ActorFrame" Name = "chess"> <children>
 		<Layer File = 'wiki.sprite' Name = "piecespr[1]" />
 		<Layer File = 'pico.sprite' Name = "piecespr[2]" />
