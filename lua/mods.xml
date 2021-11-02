@@ -55,7 +55,7 @@
 	explosionx = 0
 	explosiony = 0
 	
-	emstrings = {'','Explosive','Molasses','Rulebreaker','Instawin','Instalose','Play as Black', 'Out to lunch'}
+	emstrings = {'','Explosive','Molasses','Rulebreaker','Instawin','Instalose','Play as Black', 'Out to lunch', 'Fog of war'}
 	
 	--set nearest neighbor for certain sprites
 	piecespr[2]:SetTextureFiltering(false)
@@ -696,39 +696,44 @@
 									capturing = capturing,
 									p = pstrtopnum[ board[move[1]%10][math.floor(move[1]/10)-1] ],
 									finish = function()
-										--board = boardtotable(pos.board)
-										local move, score = search(pos)
-										assert(score)
-										
-										if score <= -MATE_VALUE then
-											print('You won')
-											endtext:settext(wintext[math.random(1,#wintext)])
-											die()
-											return
-										end
-										if score >= MATE_VALUE then
-											print('You lost')
-											endtext:settext(losetext[math.random(1,#losetext)])
-											die()
-											return
-										end
-										
-										assert(move)
-										
-										pos = pos:move(move)
-										
-										table.insert(easedpieces,{
-											x= 7-(move[2]%10 - 1), y= 7-(math.floor(move[2]/10) - 2), 
-											cx= 7-(move[1]%10 - 1), cy= 7-(math.floor(move[1]/10) - 2),
-											t = 0,
-											p = pstrtopnum[ board[8-(move[1]%10 - 1)][8-(math.floor(move[1]/10) - 2)] ]
-										})
+										if extramod ~= 7 then
+											--board = boardtotable(pos.board)
+											local move, score = search(pos)
+											assert(score)
+											
+											if score <= -MATE_VALUE then
+												print('You won')
+												endtext:settext(wintext[math.random(1,#wintext)])
+												die()
+												return
+											end
+											if score >= MATE_VALUE then
+												print('You lost')
+												endtext:settext(losetext[math.random(1,#losetext)])
+												die()
+												return
+											end
+											
+											assert(move)
+											
+											pos = pos:move(move)
+											
+											table.insert(easedpieces,{
+												x= 7-(move[2]%10 - 1), y= 7-(math.floor(move[2]/10) - 2), 
+												cx= 7-(move[1]%10 - 1), cy= 7-(math.floor(move[1]/10) - 2),
+												t = 0,
+												p = pstrtopnum[ board[8-(move[1]%10 - 1)][8-(math.floor(move[1]/10) - 2)] ]
+											})
 
-										
-										board = boardtotable(pos.board)
-										
-										circlesizeto = 0
-										heldanimto = 0
+											
+											board = boardtotable(pos.board)
+											
+											circlesizeto = 0
+											heldanimto = 0
+										else
+											pos = pos:rotate()
+											board = boardtotable(pos.board)
+										end
 									end
 								})
 								heldpiece.x = -1
