@@ -116,7 +116,7 @@
 	end
 	
 	--define scalex and scaley
-	local padding = 12 -- in px
+	local padding = 32 -- in px
 	local size = math.min(sw, sh) - padding
 	local padleft = scx - size/2
 	local padtop = scy - size/2
