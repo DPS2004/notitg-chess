@@ -6,3 +6,4 @@ Plastic skin:   from https://www.amazon.com/Chess-Pieces-Pawns-Tournament-Board/
 Dunno skin:     from Nyan Cat (MBC3), upscaled by me
 Geometric skin: from Wii Chess, upscaled by me
 Fantasy skin:   from Fantasy Chess
+Awesome skin:   from Font Awesome https://fontawesome.com/v5.15/icons?d=gallery&p=2&c=chess (https://fontawesome.com/license)

@@ -241,6 +241,7 @@
 		t = clamp(t, 0, 1)
 		local zoom = outCirc(t)
 		if gamestate == 0 then zoom = 1.5 end
+		if renderingpiece == 9 then zoom = zoom * 0.75 end
 		piece:zoomto(size / 8 * zoom, size / 8 * zoom)
 		if renderingpiece ~= 8 then
 			piece:setstate(p)
@@ -465,7 +466,7 @@
 		end
 	end
 	
-	local sproptions = {'wiki','pico','boring','plastic','dunno','geometric','fantasy','aft'}
+	local sproptions = {'wiki','pico','boring','plastic','dunno','geometric','fantasy','aft','awesome'}
 	local sprselection = 1
 	local sprselectionanim = 1
 	local lasttime = GAMESTATE:GetSongTime()
@@ -719,6 +720,7 @@ Type = "ActorFrame"
 		<Layer File = 'geometric.sprite' Name = "piecespr[6]" />
 		<Layer File = 'fantasy.sprite' Name = "piecespr[7]" />
 		<Layer Type = "Sprite" Name = "piecespr[8]"/>
+		<Layer File = 'awesome.sprite' Name = "piecespr[9]" />
 		<Layer File = 'analys' Name = "analys" />
 		<Layer File = 'board.sprite' Name = "boardtile" />
 		<Layer Type = "Polygon" Name = "cursor" />
