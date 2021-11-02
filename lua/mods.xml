@@ -28,12 +28,13 @@
 	}
 	]]
 	ease {0, 0.01, inOutCirc,
-		200, 'tiny0',
+		100, 'tiny0',
 		200,'tiny1',
-		200,'tiny3',
+		100,'tiny3',
 		-50, 'movex',
 		200, 'movey1', -- as a hint towards down menu
 		100, 'movex1',
+		100, 'movex0',
 		64,'y'
 	}
 	P[2]:hidden(1)
