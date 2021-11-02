@@ -229,10 +229,11 @@
 	local renderingpiece = 1
 	local function drawpiece(p,x,y,o,r)
 		o = o or 1
+		r = r or 0
 		local ox, oy, orx, ory, orz = drop(x, y, 1)
 		piece:x(x + 0.5 * size/8 + ox)
 		piece:y(y + 0.5 * size/8 + oy)
-		piece:rotationz(r or 0 + orz)
+		piece:rotationz((r or 0) + orz)
 		piece:rotationx(orx)
 		piece:rotationy(ory)
 		-- this is jank and sucks
@@ -259,7 +260,7 @@
 			piece:cropbottom(cropv/2)
 			piece:cropleft(croph/2)
 			piece:cropright(croph/2)
-			piece:rotationz(-r or 0 - orz) -- .. .wh.w.y w???? ?WH?Wy why WHY IS THE ROTATION . okay
+			piece:rotationz(-(r or 0) - orz) -- .. .wh.w.y w???? ?WH?Wy why WHY IS THE ROTATION . okay
 			if p == 6 or p == 0 then
 				analys:x(x + 0.5 * size/8)
 				analys:y(y + 0.5 * size/8)
@@ -508,8 +509,8 @@
 				local alpha = (sprselection == i) and e or 1
 				local rotation = (sprselection == i) and e * 360 or 0
 
-				drawpiece(clamp(piece, 0, 12), (i-sprselectionanim+3.11)*size*0.2,SCREEN_HEIGHT/2, 1 - alpha, rotation)
-				drawpiece(clamp((piece + 1) % 12, 0, 12),(i-sprselectionanim+3.11)*size*0.2,SCREEN_HEIGHT/2, alpha, rotation)
+				drawpiece(clamp(piece, 0, 12), (i-sprselectionanim-0.29)*size*0.2 + scx,SCREEN_HEIGHT/2, 1 - alpha, rotation)
+				drawpiece(clamp((piece + 1) % 12, 0, 12),(i-sprselectionanim-0.29)*size*0.2 + scx,SCREEN_HEIGHT/2, alpha, rotation)
 			end
 		end
 		if explosiontimer > 0 then
