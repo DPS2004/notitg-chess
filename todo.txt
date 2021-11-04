@@ -11,5 +11,4 @@ sound effects??
 
 BUGS TO FIX:
 
-Fix player ease visual bug
 ANALYS kings are not affected by die()

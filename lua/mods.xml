@@ -380,7 +380,7 @@
 					else
 						local dodraw = true
 						for i,v in ipairs(easedpieces) do
-							if x == v.x and y == v.y then
+							if x == v.ox and y == v.oy then
 								dodraw = false
 							end
 						end
@@ -692,6 +692,7 @@
 								table.insert(easedpieces,{
 									x= move[2]%10 - 1, y= math.floor(move[2]/10) - 2, 
 									cx= move[1]%10 - 1, cy= math.floor(move[1]/10) - 2,
+									ox= move[1]%10 - 1, oy= math.floor(move[1]/10) - 2,
 									t = 0,
 									capturing = capturing,
 									p = pstrtopnum[ board[move[1]%10][math.floor(move[1]/10)-1] ],
@@ -720,6 +721,7 @@
 											
 											table.insert(easedpieces,{
 												x= 7-(move[2]%10 - 1), y= 7-(math.floor(move[2]/10) - 2), 
+												ox= 7-(move[2]%10 - 1), oy= 7-(math.floor(move[2]/10) - 2), 
 												cx= 7-(move[1]%10 - 1), cy= 7-(math.floor(move[1]/10) - 2),
 												t = 0,
 												p = pstrtopnum[ board[8-(move[1]%10 - 1)][8-(math.floor(move[1]/10) - 2)] ]
