@@ -739,6 +739,7 @@
 								heldpiece.x = -1
 								heldpiece.y = -1
 								heldanimto = 0
+								circlesizeto = 0
 								
 								
 							else

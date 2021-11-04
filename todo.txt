@@ -12,5 +12,4 @@ sound effects??
 BUGS TO FIX:
 
 Fix player ease visual bug
-make glowy spot behavior more consistant, especially post-player move and post-die()
 ANALYS kings are not affected by die()
