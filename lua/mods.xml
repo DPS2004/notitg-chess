@@ -40,16 +40,14 @@
 	P[2]:hidden(1)
 	local playerhiddento = 0
 	local playerhidden = 0
-	gamestate = 0
-	extramod = 0
+
 	local startedGameAt = -1
 
 	func {0, 9e9, function(beat, poptions)
 		poptions[1].tiny = playerhidden * 200
 	end}
 	
-	movespeed = 0.1
-	movelength = 100
+	
 	
 	explosiontimer = 0
 	explosionx = 0
@@ -67,6 +65,10 @@
 	skintext:y(SCREEN_HEIGHT/1.4)
 	skintext:zoom(0.5)
 	
+	udtext:x(SCREEN_WIDTH/2)
+	udtext:y(SCREEN_HEIGHT/1.4)
+	udtext:zoom(0.5)
+	
 	emtext:x(SCREEN_WIDTH/2)
 	emtext:y(SCREEN_HEIGHT/1.3)
 	emtext:zoom(0.25)
@@ -83,7 +85,6 @@
 	
 	badmovetext:vibrate()
 	badmovetext:glow(1,0,0,1)
-	badmovetimer = 0
 	firstbadmove = true
 	youfuckedup = {
 		'NOPE',
@@ -132,8 +133,28 @@
 		'CRY ABOUT IT'
 	}
 		
+	
+	function chess_init()
+		deathtime = -1
+		ChessState = 0
+		extramod = 0
+		movespeed = 0.1
+		movelength = 100
+		badmovetimer = 0
 		
+		pos = Position.new(initial, 0, {true,true}, {true,true}, 0, 0)
+		printboard(pos.board)
+		board = boardtotable(pos.board) --only call this when board needs to be updated
 		
+		heldpiece = {x=-1,y=-1,dx=-1,dy=-1}
+		heldanim = 0
+		heldanimto = 0
+		
+	end
+	
+	
+	
+	
 	
 	function sound(str)
 		local dir = GAMESTATE:GetCurrentSong():GetSongDir();
@@ -155,7 +176,6 @@
 
 	print(padtop)
 
-	local deathtime = -1
 	local function die()
 		deathtime = GAMESTATE:GetSongTime()
 	end
@@ -164,7 +184,14 @@
 	local function drop(x, y, seed)
 		local t = GAMESTATE:GetSongTime() - deathtime
 		if deathtime == -1 or t < wait then return 0, 0, 0, 0, 0 end
-		if t > 2 then return 0, sh, 0, 0, 0 end
+		if t > 2 then 
+			if ChessState ~= 2 then 
+				ChessState = 2 
+				print('cs 2') 
+				udtext:settext('Press /\\ to reset\nPress \\/ to end the song')
+			end
+			return 0, sh, 0, 0, 0 
+		end
 		t = t - wait
 		math.randomseed(x * 420.69 + y * 955.345 + seed * 2)
 		local duration = math.random() * 0.2 + 0.9
@@ -198,9 +225,6 @@
 	
 	
 	--start chess game
-	pos = Position.new(initial, 0, {true,true}, {true,true}, 0, 0)
-	printboard(pos.board)
-	board = boardtotable(pos.board) --only call this when board needs to be updated
 	
 	-- background stuff
 	for _,v in ipairs(bg) do
@@ -214,7 +238,9 @@
 	local hasDoneTransition = false
 
 	local earliest
-
+	
+	chess_init()
+	
 	local function drawBG()
 		local t = GAMESTATE:GetSongTime()
 		if not earliest then earliest = t end
@@ -279,7 +305,7 @@
 		t = t * 2.5 - ((x - padleft) / size + (y - padtop) / size) / 2
 		t = clamp(t, 0, 1)
 		local zoom = outCirc(t)
-		if gamestate == 0 then zoom = 1.5 end
+		if ChessState == 0 then zoom = 1.5 end
 		if renderingpiece == 9 then zoom = zoom * 0.75 end
 		piece:zoomto(size / 8 * zoom, size / 8 * zoom)
 		if renderingpiece ~= 8 then
@@ -361,10 +387,7 @@
 
 	local sfletters = {'a','b','c','d','e','f','g','h'}
 	
-	local heldpiece = {x=-1,y=-1,dx=-1,dy=-1}
-	local heldanim = 0
-	local heldanimto = 0
-	local heldcpiece
+	
 	
 	local wobblesize = 0.1
 	easedpieces = {}
@@ -516,7 +539,7 @@
 		if GAMESTATE:GetSongBeat() > 0.01 then
 			previewtime = previewtime + dt
 		end
-		if gamestate == 1 then
+		if ChessState == 1 then
 			cursorx, cursory = lerp(cursorx, cursorxto, dt * 12), lerp(cursory, cursoryto, dt * 12)
 			cursorzoom = lerp(cursorzoom, cursorzoomto, dt * 17)
 			circlesize = lerp(circlesize, circlesizeto, dt * 18)
@@ -525,7 +548,7 @@
 			heldpiece.dx, heldpiece.dy = lerp(heldpiece.dx, cursorxto, dt * 6), lerp(heldpiece.dy, cursoryto, dt * 6)
 		end
 		drawboard()
-		if gamestate == 1 then
+		if ChessState == 1 then
 			drawpieces()
 			if heldanim > 0.1 or circlesize > 0.1 then
 				drawMovespots()
@@ -535,7 +558,7 @@
 		--for i=0,11 do
 			--drawpiece(i,i*50+50,SCREEN_HEIGHT/2+math.sin(i)*50)
 		--end
-		if gamestate == 0 then
+		if ChessState == 0 then
 			local e = inOutExpo(previewtime % 1)
 			local p = math.floor(previewtime)
 			sprselectionanim = lerp(sprselectionanim, sprselection, dt * 19)
@@ -575,7 +598,7 @@
 			self:addcommand('StepP' .. 1 .. v .. 'Press' .. 'Message', function()
 				pressedAt = GAMESTATE:GetSongTime()
 				cursorholdstart = pressedAt
-				if gamestate == 0 then
+				if ChessState == 0 then
 					sprselection = clamp(sprselection + d[1], 1, #sproptions)
 					skintext:settext(sproptions[sprselection])
 					previewtime = 0
@@ -584,7 +607,7 @@
 						emtext:settext(emstrings[extramod+1])
 					end
 					if d[2] == -1 then
-						gamestate = 1
+						ChessState = 1
 						renderingpiece = sprselection
 						piece = piecespr[sprselection]
 						skintext:settext('')
@@ -632,12 +655,22 @@
 						end
 					end
 				end
+				if ChessState == 2 then	
+					if d[2] == -1 then --reset 
+						udtext:settext('')
+						chess_init()
+					end
+					if d[2] == 1 then --end file
+						print('the end!')
+						GAMESTATE:FinishSong()
+					end
+				end
 			end)
 			self:addcommand('StepP' .. 1 .. v .. 'Lift' .. 'Message', function()
 				local dt = GAMESTATE:GetSongTime() - pressedAt
 
 				if dt < holdtimer then
-					if gamestate == 1 then
+					if ChessState == 1 then
 						Trace('moved cursor ' .. v .. '!')
 						cursorxto, cursoryto = clamp(cursorxto + d[1], 0, 7), clamp(cursoryto + d[2], 0, 7)
 					end
@@ -647,7 +680,7 @@
 			end)
 
 			func {0.01, 9e9, function()
-				if gamestate == 1 then	
+				if ChessState == 1 then	
 					if pressedAt == -1 then return end
 					local dt = GAMESTATE:GetSongTime() - pressedAt
 					if dt >= holdtimer then
@@ -813,6 +846,7 @@ Type = "ActorFrame"
 	<Layer Name = "skintext" Type="BitmapText" Font="_wendy small" Text="wiki"/>
 	<Layer Name = "emtext" Type="BitmapText" Font="_wendy small" Text=""/>
 	<Layer Type = "ActorProxy" Name = "PP[1]" />
+	<Layer Name = "udtext" Type="BitmapText" Font="_wendy small" Text=""/>
 
 	<Layer Type = "ActorFrameTexture" Name = "aft" InitCommand = "%xero.aft"/>
 

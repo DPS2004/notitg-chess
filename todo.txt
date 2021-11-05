@@ -1,6 +1,5 @@
 TODO:
 
-add post die() win/lose screen, send player to end of file
 i'm not exactly sure why, but difficulty doesnt seem to be getting set properly.
 maybe more skins/ extra modifiers?
 make music loop
@@ -8,7 +7,7 @@ change size of explosion
 make AI's captures also explode
 sound effects??
 
-
 BUGS TO FIX:
 
 ANALYS kings are not affected by die()
+hide board after reset
