@@ -53,6 +53,10 @@
 	explosionx = 0
 	explosiony = 0
 	
+	explosiontimer2 = 0
+	explosionx2 = 0
+	explosiony2 = 0
+	
 	emstrings = {'','Explosive','Molasses','Rulebreaker','Instawin','Instalose','Play as Black', 'Out to lunch', 'Fog of war'}
 	
 	--set nearest neighbor for certain sprites
@@ -82,6 +86,10 @@
 	explosionspr:x(SCREEN_WIDTH/2)
 	explosionspr:y(SCREEN_HEIGHT/2)
 	explosionspr:align(0, 0.1)
+	
+	explosionspr2:x(SCREEN_WIDTH/2)
+	explosionspr2:y(SCREEN_HEIGHT/2)
+	explosionspr2:align(0, 0.1)
 	
 	badmovetext:vibrate()
 	badmovetext:glow(1,0,0,1)
@@ -580,6 +588,12 @@
 			explosionspr:y(padtop + size * explosiony/8)
 			explosionspr:Draw()
 		end
+		if explosiontimer2 > 0 then
+			explosiontimer2 = explosiontimer2 - dt
+			explosionspr2:x(padleft + size * explosionx2/8)
+			explosionspr2:y(padtop + size * explosiony2/8)
+			explosionspr2:Draw()
+		end
 	end)
 
 	-- setup input
@@ -731,7 +745,7 @@
 									p = pstrtopnum[ board[move[1]%10][math.floor(move[1]/10)-1] ],
 									finish = function()
 										if extramod ~= 7 then
-											--board = boardtotable(pos.board)
+											local newboard = boardtotable(pos.board)
 											local move, score = search(pos)
 											assert(score)
 											
@@ -749,6 +763,24 @@
 											end
 											
 											assert(move)
+											
+											if pstrtopnum[ newboard[(7-(move[2]%10 - 1))+1][(7-(math.floor(move[2]/10) - 2))+1] ] then
+												print('---------------------BLACK CAPTURE---------------------')
+												capturing = true
+											else
+												capturing = false
+												print('no black capture')
+											end
+											
+											if capturing and extramod == 1 then
+												print('kaboom')
+												explosiontimer2 = 1.44
+												explosionx2 = (7-(move[2]%10 - 1))
+												explosiony2 = (7-(math.floor(move[2]/10) - 2))
+												sound('deltarune-explosion')
+												explosionspr2:setstate(0)
+											end
+											
 											
 											pos = pos:move(move)
 											
@@ -841,6 +873,7 @@ Type = "ActorFrame"
 		<Layer Type = "Polygon" Name = "cursor" />
 		<Layer Type = "Polygon" Name = "movespot" />
 		<Layer File = 'explosion.sprite' Name = "explosionspr" />
+		<Layer File = 'explosion.sprite' Name = "explosionspr2" />
 	</children> </Layer>
 	<Layer Name = "badmovetext" Type="BitmapText" Font="_wendy small" Text=""/>
 	<Layer Name = "skintext" Type="BitmapText" Font="_wendy small" Text="wiki"/>
