@@ -112,6 +112,9 @@
 		'NOT KAWAII',
 		'ASDFGHJKL;',
 		'START RUNNING',
+		'OH WOW HAHA AWESOME',
+		'NUH-UH!',
+		'PERISH',
 		'>:(',
 	}
 	wintext = {
@@ -210,6 +213,15 @@
 					  lerp(0, math.random(-50, 50), outQuad(t * duration))                                                        -- rz
 	end
 	
+	
+	--load chess engine
+	local songName = GAMESTATE:GetCurrentSong():GetSongDir();
+	local result = pcall(function () dofile ('.' .. songName .. 'lua/sunfish/sunfish.lua') end)
+	if not result then result = pcall(function () dofile ('lua/sunfish/sunfish.lua') end) end
+	if not result then backToSongWheel('Loading sunfish.lua failed!') end
+	
+	
+	
 	--set chess engine difficulty
 	local difficulty = GAMESTATE:GetCurrentSteps(0):GetDifficulty()
 	if difficulty == 1 then
@@ -223,12 +235,6 @@
 	end
 	print('difficulty '.. difficulty)
 	print(NODES_SEARCHED)
-	
-	--load chess engine
-	local songName = GAMESTATE:GetCurrentSong():GetSongDir();
-	local result = pcall(function () dofile ('.' .. songName .. 'lua/sunfish/sunfish.lua') end)
-	if not result then result = pcall(function () dofile ('lua/sunfish/sunfish.lua') end) end
-	if not result then backToSongWheel('Loading sunfish.lua failed!') end
 	
 	
 	
@@ -651,7 +657,7 @@
 							board = boardtotable(pos.board)
 							
 							--white move
-							local move, score = search(pos)
+							local move, score = search(pos,NODES_SEARCHED)
 							assert(score)						
 							assert(move)
 							pos = pos:move(move)
@@ -746,7 +752,7 @@
 									finish = function()
 										if extramod ~= 7 then
 											local newboard = boardtotable(pos.board)
-											local move, score = search(pos)
+											local move, score = search(pos,NODES_SEARCHED)
 											assert(score)
 											
 											if score <= -MATE_VALUE then
