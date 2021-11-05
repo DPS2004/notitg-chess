@@ -536,7 +536,7 @@
 		end
 	end
 	
-	local sproptions = {'wiki','pico','boring','plastic','dunno','geometric','fantasy','aft','awesome'}
+	local sproptions = {'wiki','pico','boring','plastic','dunno','geometric','fantasy','aft','awesome','uksrt'}
 	local sprselection = 1
 	local sprselectionanim = 1
 	local lasttime = GAMESTATE:GetSongTime()
@@ -868,6 +868,7 @@ Type = "ActorFrame"
 		<Layer File = 'fantasy.sprite' Name = "piecespr[7]" />
 		<Layer Type = "Sprite" Name = "piecespr[8]"/>
 		<Layer File = 'awesome.sprite' Name = "piecespr[9]" />
+		<Layer File = 'uksrt.sprite' Name = "piecespr[10]" />
 		<Layer File = 'analys' Name = "analys" />
 		<Layer File = 'board.sprite' Name = "boardtile" />
 		<Layer Type = "Polygon" Name = "cursor" />
