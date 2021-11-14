@@ -5,12 +5,12 @@
 #SUBTITLETRANSLIT:;
 #ARTISTTRANSLIT:;
 #GENRE:;
-#CREDIT:;
+#CREDIT:oat & dps;
 #BANNER:bn.png;
 #BACKGROUND:;
 #LYRICSPATH:;
 #CDTITLE:;
-#MUSIC:21-Toby-Fox-Checkerboard-Memories.ogg;
+#MUSIC:silence.ogg;
 #OFFSET:0.029;
 #SAMPLESTART:7.359;
 #SAMPLELENGTH:12.000;
@@ -29,7 +29,7 @@
 //---------------dance-single - ----------------
 #NOTES:
      dance-single:
-     :
+     babby mode:
      Easy:
      1:
      0.000,0.000,0.000,0.000,0.000:
@@ -538,7 +538,7 @@ M000
 //---------------dance-single - ----------------
 #NOTES:
      dance-single:
-     :
+     getting harder:
      Medium:
      2:
      0.000,0.000,0.000,0.000,0.000:
@@ -1052,7 +1052,7 @@ M000
 //---------------dance-single - ----------------
 #NOTES:
      dance-single:
-     :
+     Chessxpert:
      Hard:
      3:
      0.000,0.000,0.000,0.000,0.000:
@@ -1566,7 +1566,7 @@ M000
 //---------------dance-single - ----------------
 #NOTES:
      dance-single:
-     :
+     the unrestrained power of the sun(fish):
      Challenge:
      4:
      0.000,0.000,0.000,0.000,0.000:

@@ -902,5 +902,18 @@ Type = "ActorFrame"
 	<Layer Name = "udtext" Type="BitmapText" Font="_wendy small" Text=""/>
 
 	<Layer Type = "ActorFrameTexture" Name = "aft" InitCommand = "%xero.aft"/>
+	<ActorSound
+    File="bgm.ogg"
+    InitCommand="%function(self) end"
+    OnCommand="sleep,4;playcommand,Do"
+    DoCommand="%function(self)
+        self:get():stopmode('loop') --looping audio
+        self:start() --start from 0 seconds
+        self:get():startsecond(0) --loop back to 1.762 when sound completes
 
+    end"
+    StopAudioMessageCommand="%function(self)
+      self:stop()
+    end"
+  />
 </children></Mods>
