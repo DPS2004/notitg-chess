@@ -188,6 +188,7 @@
 	print(padtop)
 
 	local function die()
+		sound('gameover')
 		deathtime = GAMESTATE:GetSongTime()
 	end
 
@@ -733,14 +734,21 @@
 								print('this is an ok move')
 								pos = pos:move(move)
 								
-								if capturing and extramod == 1 then
-									print('kaboom')
-									explosiontimer = 1.44
-									explosionx = cursorxto
-									explosiony = cursoryto
-									sound('deltarune-explosion')
-									explosionspr:setstate(0)
+								if capturing then
+									if extramod == 1  then
+										print('kaboom')
+										explosiontimer = 1.44
+										explosionx = cursorxto
+										explosiony = cursoryto
+										sound('deltarune-explosion')
+										explosionspr:setstate(0)
+									else
+										sound('Capture')
+									end
+								else
+									sound('Move')
 								end
+								
 								
 								table.insert(easedpieces,{
 									x= move[2]%10 - 1, y= math.floor(move[2]/10) - 2, 
@@ -777,14 +785,19 @@
 												capturing = false
 												print('no black capture')
 											end
-											
-											if capturing and extramod == 1 then
-												print('kaboom')
-												explosiontimer2 = 1.44
-												explosionx2 = (7-(move[2]%10 - 1))
-												explosiony2 = (7-(math.floor(move[2]/10) - 2))
-												sound('deltarune-explosion')
-												explosionspr2:setstate(0)
+											if capturing then
+												if extramod == 1  then
+													print('kaboom')
+													explosiontimer2 = 1.44
+													explosionx2 = (7-(move[2]%10 - 1))
+													explosiony2 = (7-(math.floor(move[2]/10) - 2))
+													sound('deltarune-explosion')
+													explosionspr2:setstate(0)
+												else
+													sound('Capture')
+												end
+											else
+												sound('Move')
 											end
 											
 											
